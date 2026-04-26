@@ -1,0 +1,18 @@
+import { Achievement } from './types';
+export const achievements: Achievement[] = [
+  { achievement_id: 'first-quiz', title: 'First Steps', description: 'Complete your first quiz', emoji: '🐣', xp_reward: 10, condition: 'complete_quiz_1', category: 'quizzes' },
+  { achievement_id: 'quiz-5', title: 'Quiz Learner', description: 'Complete 5 quizzes', emoji: '📖', xp_reward: 50, condition: 'complete_quiz_5', category: 'quizzes' },
+  { achievement_id: 'quiz-15', title: 'Quiz Master', description: 'Complete 15 quizzes', emoji: '🎓', xp_reward: 150, condition: 'complete_quiz_15', category: 'quizzes' },
+  { achievement_id: 'perfect-score', title: 'Perfect Score', description: 'Get 100% on any quiz', emoji: '💯', xp_reward: 75, condition: 'score_100', category: 'quizzes' },
+  { achievement_id: 'first-game', title: 'Game On!', description: 'Play your first game', emoji: '🎮', xp_reward: 10, condition: 'play_game_1', category: 'games' },
+  { achievement_id: 'game-10', title: 'Gamer', description: 'Play 10 games', emoji: '🕹️', xp_reward: 60, condition: 'play_game_10', category: 'games' },
+  { achievement_id: 'streak-3', title: 'On a Roll', description: '3-day learning streak', emoji: '🔥', xp_reward: 30, condition: 'streak_3', category: 'streak' },
+  { achievement_id: 'streak-7', title: 'Week Warrior', description: '7-day learning streak', emoji: '⚡', xp_reward: 100, condition: 'streak_7', category: 'streak' },
+  { achievement_id: 'streak-30', title: 'Monthly Champion', description: '30-day learning streak', emoji: '👑', xp_reward: 500, condition: 'streak_30', category: 'streak' },
+  { achievement_id: 'xp-100', title: 'Rising Star', description: 'Earn 100 XP total', emoji: '⭐', xp_reward: 20, condition: 'xp_100', category: 'xp' },
+  { achievement_id: 'xp-500', title: 'Super Learner', description: 'Earn 500 XP total', emoji: '🌟', xp_reward: 50, condition: 'xp_500', category: 'xp' },
+  { achievement_id: 'xp-1000', title: 'Knowledge Hero', description: 'Earn 1000 XP total', emoji: '🦸', xp_reward: 100, condition: 'xp_1000', category: 'xp' },
+  { achievement_id: 'all-math', title: 'Math Whiz', description: 'Complete all Math quizzes', emoji: '🧮', xp_reward: 80, condition: 'complete_all_math', category: 'subjects' },
+  { achievement_id: 'all-science', title: 'Science Explorer', description: 'Complete all Science quizzes', emoji: '🔬', xp_reward: 80, condition: 'complete_all_science', category: 'subjects' },
+  { achievement_id: 'all-english', title: 'Word Wizard', description: 'Complete all English quizzes', emoji: '📚', xp_reward: 80, condition: 'complete_all_english', category: 'subjects' },
+];
