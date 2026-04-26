@@ -5,10 +5,10 @@ import { useApp } from "@/lib/store";
 import { games } from "@/data/games";
 import { ChevronRight } from "lucide-react";
 
-const difficultyColors: Record<string, string> = {
-  easy: "bg-emerald-100 text-emerald-700",
-  medium: "bg-amber-100 text-amber-700",
-  hard: "bg-red-100 text-red-700",
+const difficultyBadge: Record<string, { label: string; cls: string }> = {
+  easy:   { label: "Easy",   cls: "bg-emerald-100 text-emerald-700" },
+  medium: { label: "Medium", cls: "bg-amber-100 text-amber-700" },
+  hard:   { label: "Hard",   cls: "bg-red-100 text-red-700" },
 };
 
 const categoryTabs = ["All", "Logic", "Math", "English", "Science", "Geography"];
@@ -19,10 +19,11 @@ const GameCard = React.memo(function GameCard({ game, hasPlayed, bestScore, onCl
   bestScore: number | undefined;
   onClick: () => void;
 }) {
+  const diff = difficultyBadge[game.difficulty];
   return (
     <button
       onClick={onClick}
-      className="rounded-2xl overflow-hidden shadow-md bg-white text-left card-hover active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-violet-300 group"
+      className="game-card-glow rounded-2xl overflow-hidden shadow-md bg-white text-left active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-violet-300 group"
     >
       <div className="h-28 flex items-center justify-center relative" style={{ backgroundColor: game.color }}>
         <span className="text-5xl drop-shadow-md group-hover:scale-110 transition-transform">{game.emoji}</span>
@@ -41,9 +42,11 @@ const GameCard = React.memo(function GameCard({ game, hasPlayed, bestScore, onCl
             {bestScore !== undefined && (
               <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">{bestScore}pts</span>
             )}
-            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${difficultyColors[game.difficulty]}`}>
-              {game.difficulty}
-            </span>
+            {diff && (
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${diff.cls}`}>
+                {diff.label}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -60,16 +63,36 @@ export default function GamesView() {
     ? games
     : games.filter((g) => g.category === activeCategory);
 
-  const featuredGame = games[5]; // Color Match — most played
+  // Featured game: highest play count
+  const featuredGame = games.reduce((prev, curr) => curr.plays > prev.plays ? curr : prev, games[0]);
+
+  const exploredPercent = Math.round((gamesPlayed.length / games.length) * 100);
 
   return (
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div className="animate-slide-up" style={{ opacity: 0 }}>
         <h1 className="text-2xl font-extrabold font-display">
-          <span className="gradient-text">🎮</span> Fun Games
+          <span className="gradient-text">Fun Games</span> 🎮
         </h1>
         <p className="text-muted-foreground mt-1">{games.length} games to play and learn!</p>
+      </div>
+
+      {/* Progress bar — X/12 Games Explored */}
+      <div className="glass rounded-2xl p-4 animate-slide-up delay-100" style={{ opacity: 0 }}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-gray-600">Games Explored</span>
+          <span className="text-sm font-bold text-primary">{gamesPlayed.length}/{games.length} ({exploredPercent}%)</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+          <div
+            className="progress-bar-animated bg-gradient-to-r from-violet-400 to-fuchsia-500 h-full rounded-full shimmer-overlay"
+            style={{ width: `${exploredPercent}%` }}
+          />
+        </div>
+        {gamesPlayed.length === 0 && (
+          <p className="text-gray-400 text-xs mt-2">Pick a game below to get started! 🚀</p>
+        )}
       </div>
 
       {/* Category Tabs */}
@@ -90,19 +113,23 @@ export default function GamesView() {
       {/* Featured Game Spotlight */}
       <div className="animate-slide-up delay-200" style={{ opacity: 0 }}>
         <div
-          className="rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden cursor-pointer card-hover active:scale-[0.98]"
-          style={{ background: `linear-gradient(135deg, ${featuredGame.color}, ${featuredGame.color}cc)` }}
+          className="featured-glow rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden cursor-pointer card-hover active:scale-[0.98]"
+          style={{ background: `linear-gradient(135deg, ${featuredGame.color}, ${featuredGame.color}bb)` }}
           onClick={() => startGame(featuredGame.game_id)}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
-          <div className="relative z-10 flex items-center gap-6">
+          <div className="absolute top-4 right-6 text-6xl opacity-10">⭐</div>
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <div className="text-7xl animate-bounce-slow flex-shrink-0">{featuredGame.emoji}</div>
             <div className="flex-1">
-              <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">Featured</span>
-              <h2 className="text-2xl font-extrabold font-display mt-2">{featuredGame.title}</h2>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full">⭐ Featured</span>
+                <span className="text-xs font-semibold text-white/70">{featuredGame.plays.toLocaleString()} plays</span>
+              </div>
+              <h2 className="text-2xl font-extrabold font-display">{featuredGame.title}</h2>
               <p className="text-white/80 text-sm mt-1">{featuredGame.description}</p>
-              <button className="mt-3 bg-white text-gray-800 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-100 transition-all active:scale-95 animate-glow">
-                PLAY NOW <ChevronRight className="inline w-4 h-4" />
+              <button className="mt-4 bg-white text-gray-800 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-100 transition-all active:scale-95 animate-glow inline-flex items-center gap-1.5">
+                PLAY NOW <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -111,7 +138,7 @@ export default function GamesView() {
 
       {/* Game Grid */}
       <div className="animate-slide-up delay-300" style={{ opacity: 0 }}>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {filteredGames.map((game) => (
             <GameCard
               key={game.game_id}
@@ -122,23 +149,6 @@ export default function GamesView() {
             />
           ))}
         </div>
-      </div>
-
-      {/* Progress Section */}
-      <div className="glass rounded-2xl p-5 text-center animate-slide-up delay-400" style={{ opacity: 0 }}>
-        <p className="text-gray-500 text-sm font-medium">Your Progress</p>
-        <p className="text-2xl font-extrabold text-primary mt-1 font-display">
-          {gamesPlayed.length}/{games.length} games played
-        </p>
-        <div className="w-full bg-gray-200 rounded-full h-3 mt-3 overflow-hidden">
-          <div
-            className="progress-bar-animated bg-gradient-to-r from-violet-400 to-fuchsia-500 h-full rounded-full shimmer-overlay"
-            style={{ width: `${(gamesPlayed.length / games.length) * 100}%` }}
-          />
-        </div>
-        {gamesPlayed.length === 0 && (
-          <p className="text-gray-400 text-sm mt-2">Pick a game above to get started! 🚀</p>
-        )}
       </div>
     </div>
   );

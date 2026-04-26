@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useApp } from "@/lib/store";
 import { quizzes } from "@/data/quizzes";
 import type { QuizOption } from "@/data/types";
+import { X } from "lucide-react";
 
 const OPTION_COLORS = [
   { bg: "bg-red-50", border: "border-red-200", selected: "bg-red-100 border-red-400 ring-2 ring-red-200" },
@@ -59,6 +60,15 @@ function AnimatedCounter({ target, duration = 1500 }: { target: number; duration
   return <>{count}</>;
 }
 
+// Floating +1 animation component
+function FloatingPlusOne() {
+  return (
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 float-up-plus z-50">
+      <span className="text-2xl font-extrabold text-emerald-500 drop-shadow-md">+1 ✨</span>
+    </div>
+  );
+}
+
 export default function QuizPlayer() {
   const { state, navigate, completeQuiz } = useApp();
 
@@ -75,6 +85,7 @@ export default function QuizPlayer() {
   const [quizFinished, setQuizFinished] = useState(false);
   const [questionKey, setQuestionKey] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [showPlusOne, setShowPlusOne] = useState(false);
 
   const quiz = useMemo(() => quizzes.find((q) => q.quiz_id === state.selectedQuizId), [state.selectedQuizId]);
 
@@ -175,7 +186,12 @@ export default function QuizPlayer() {
     }
 
     setIsCorrect(correct);
-    if (correct) setScore((prev) => prev + 1);
+    if (correct) {
+      setScore((prev) => prev + 1);
+      // Show floating +1 animation
+      setShowPlusOne(true);
+      setTimeout(() => setShowPlusOne(false), 1000);
+    }
 
     setTimeout(() => {
       setShowResult(false);
@@ -205,13 +221,14 @@ export default function QuizPlayer() {
     setQuizFinished(false);
     setShowQuitConfirm(false);
     setQuestionKey(0);
+    setShowPlusOne(false);
     if (quiz?.settings.time_limit && quiz.settings.time_limit > 0) setTimeLeft(quiz.settings.time_limit);
   }
 
-  // Timer ring
+  // Timer ring — larger, animated color transition
   const timerLimit = quiz.settings.time_limit || 0;
   const timerProgress = timerLimit > 0 ? timeLeft / timerLimit : 1;
-  const timerCircumference = 2 * Math.PI * 18;
+  const timerCircumference = 2 * Math.PI * 22;
   const timerOffset = timerCircumference * (1 - timerProgress);
   const timerColor = timeLeft <= 10 ? "#ef4444" : timeLeft <= 30 ? "#f59e0b" : "#8b5cf6";
 
@@ -254,9 +271,9 @@ export default function QuizPlayer() {
               ))}
             </div>
 
-            {/* Score */}
+            {/* Score — Animated Counter */}
             <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-2xl p-6 mb-6">
-              <div className="text-5xl font-extrabold gradient-text mb-1">
+              <div className="text-6xl font-extrabold gradient-text mb-1 score-count-up">
                 <AnimatedCounter target={scorePercentage} />%
               </div>
               <div className="text-gray-600 text-lg">{score}/{totalQuestions} correct</div>
@@ -292,20 +309,30 @@ export default function QuizPlayer() {
     <div className="min-h-screen bg-gradient-to-b from-violet-50 to-fuchsia-50">
       {QuitConfirmOverlay}
 
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-lg mx-auto px-4 py-6 relative">
+        {/* Floating +1 animation */}
+        {showPlusOne && <FloatingPlusOne />}
+
         {/* Top bar */}
         <div className="flex items-center justify-between mb-5">
-          <button onClick={() => setShowQuitConfirm(true)} className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all active:scale-95 text-xl" aria-label="Quit quiz">←</button>
+          <button
+            onClick={() => setShowQuitConfirm(true)}
+            className="w-11 h-11 rounded-full bg-white shadow-md flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all active:scale-95"
+            aria-label="Quit quiz"
+          >
+            <X className="w-5 h-5" />
+          </button>
           <h1 className="text-base font-bold text-gray-700 truncate max-w-[180px]">{quiz.emoji} {quiz.title}</h1>
 
-          {/* Circular timer */}
+          {/* Circular timer — larger */}
           {quiz.settings.time_limit > 0 && (
-            <div className={`relative w-12 h-12 ${timeLeft <= 10 ? "animate-pulse" : ""}`}>
-              <svg className="w-12 h-12 -rotate-90" viewBox="0 0 40 40">
-                <circle cx="20" cy="20" r="18" stroke="#e5e7eb" strokeWidth="3" fill="none" />
-                <circle cx="20" cy="20" r="18" stroke={timerColor} strokeWidth="3" fill="none"
+            <div className={`relative w-14 h-14 ${timeLeft <= 10 ? "animate-pulse" : ""}`}>
+              <svg className="w-14 h-14 -rotate-90" viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="22" stroke="#e5e7eb" strokeWidth="4" fill="none" />
+                <circle cx="24" cy="24" r="22" stroke={timerColor} strokeWidth="4" fill="none"
                   strokeLinecap="round" strokeDasharray={timerCircumference} strokeDashoffset={timerOffset}
-                  className="transition-all duration-1000" />
+                  className="transition-all duration-1000"
+                />
               </svg>
               <span className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ color: timerColor }}>
                 {formatTime(timeLeft)}
@@ -322,7 +349,6 @@ export default function QuizPlayer() {
           </div>
           <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden relative">
             <div className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPercent}%` }} />
-            {/* Step markers */}
             <div className="absolute top-0 left-0 right-0 h-full flex items-center pointer-events-none">
               {questions.map((_, idx) => (
                 <div key={idx} className="flex-1 flex justify-center">
@@ -333,7 +359,7 @@ export default function QuizPlayer() {
           </div>
         </div>
 
-        {/* Question card */}
+        {/* Question card — with slide-in transition */}
         {currentQ && (
           <div key={questionKey} className="glass rounded-3xl shadow-lg p-6 md:p-8 mb-6 question-enter">
             {/* Question badge */}
@@ -345,7 +371,7 @@ export default function QuizPlayer() {
             </div>
 
             {/* Question text */}
-            <div className={`rounded-2xl p-5 mb-6 transition-all ${
+            <div className={`rounded-2xl p-5 mb-6 transition-all relative ${
               showResult ? isCorrect ? "flash-correct bg-emerald-50" : "flash-wrong bg-red-50" : "bg-gradient-to-r from-violet-50 to-fuchsia-50"
             }`}>
               {showResult && <div className="text-3xl mb-2">{isCorrect ? "✅" : "❌"}</div>}

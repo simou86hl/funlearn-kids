@@ -7,17 +7,33 @@ import { achievements } from "@/data/achievements";
 
 function DayDots({ streak }: { streak: number }) {
   const days = ["M", "T", "W", "T", "F", "S", "S"];
+  const currentDayIndex = (new Date().getDay() + 6) % 7; // 0 = Monday
+
   return (
-    <div className="flex justify-center gap-1.5 mt-3">
-      {days.map((d, i) => (
-        <div key={i} className="flex flex-col items-center gap-0.5">
-          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${
-            i < streak ? "bg-white/40 text-white" : "bg-white/15 text-white/40"
-          }`}>
-            {i < streak ? "✓" : d}
+    <div className="flex justify-center gap-2 mt-4">
+      {days.map((d, i) => {
+        const isActive = i === currentDayIndex;
+        const isFilled = i < streak;
+
+        return (
+          <div key={i} className="flex flex-col items-center gap-1">
+            <div
+              className={`day-dot ${
+                isFilled
+                  ? "bg-white/50 text-white shadow-inner"
+                  : isActive
+                  ? "bg-white/30 text-white ring-2 ring-white/50"
+                  : "bg-white/15 text-white/40"
+              }`}
+            >
+              {isFilled ? "✓" : d}
+            </div>
+            {isActive && (
+              <span className="text-[8px] text-white/70 font-bold">Today</span>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -38,7 +54,7 @@ function TaskCard({ task, isDone, onComplete, accent }: {
 
   return (
     <div className={`kid-card bg-white rounded-xl p-4 border-l-4 transition-all ${accent} ${
-      isDone ? "opacity-75" : ""
+      isDone ? "opacity-80" : ""
     }`}>
       <div className="flex items-start gap-3">
         <span className="text-2xl mt-0.5">{task.emoji}</span>
@@ -60,7 +76,7 @@ function TaskCard({ task, isDone, onComplete, accent }: {
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
               : "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:opacity-90 shadow-md shadow-violet-500/20 animate-glow"
           }`}>
-          {claimed ? "Claimed ✓" : "🎁 Claim Reward"}
+          {claimed ? "✅ Claimed!" : "✨ Claim Reward"}
         </button>
       )}
     </div>
@@ -79,27 +95,56 @@ export default function TasksView() {
     return [...locked].sort((a, b) => a.achievement_id.localeCompare(b.achievement_id)).slice(0, 6);
   }, [progress.achievementsUnlocked]);
 
+  const nextToUnlock = useMemo(() => {
+    const locked = achievements.filter((a) => !progress.achievementsUnlocked.includes(a.achievement_id));
+    return locked.slice(0, 3);
+  }, [progress.achievementsUnlocked]);
+
   const unlockedAchievements = achievements.filter((a) => progress.achievementsUnlocked.includes(a.achievement_id));
+
+  const noTasksCompleted = dailyCompleted === 0 && weeklyCompleted === 0;
 
   return (
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div className="text-center animate-slide-up" style={{ opacity: 0 }}>
-        <h1 className="text-2xl font-extrabold font-display">📋 Missions</h1>
+        <h1 className="text-2xl font-extrabold font-display">Missions 📋</h1>
         <p className="text-muted-foreground mt-1">Complete tasks to earn XP and unlock achievements!</p>
       </div>
 
-      {/* Streak Card */}
-      <div className="hero-gradient rounded-3xl p-6 text-white shadow-xl text-center animate-slide-up delay-100 relative overflow-hidden" style={{ opacity: 0 }}>
-        <span className="absolute top-3 right-4 text-3xl animate-bounce-slow opacity-40">🔥</span>
+      {/* Streak Card — Positive Framing */}
+      <div
+        className={`rounded-3xl p-6 text-white shadow-xl text-center animate-slide-up delay-100 relative overflow-hidden ${
+          progress.streak > 0 ? "streak-gradient-positive" : "streak-gradient-positive"
+        }`}
+        style={{ opacity: 0 }}
+      >
+        <span className="absolute top-3 right-4 text-3xl animate-bounce-slow opacity-40">
+          {progress.streak > 0 ? "🔥" : "☀️"}
+        </span>
         <div className="relative z-10">
-          <span className="text-5xl block mb-2 animate-spring">{progress.streak > 0 ? "🔥" : "💤"}</span>
-          <span className="text-3xl font-extrabold font-display">
-            {progress.streak > 0 ? `${progress.streak} Day Streak!` : "Start Your Streak!"}
+          <span className="text-5xl block mb-2 animate-spring">
+            {progress.streak > 0 ? "🔥" : "☀️"}
           </span>
-          <p className="text-white/80 text-sm font-medium mt-2">
-            {progress.streak > 0 ? "Keep it up! You're doing amazing!" : "Complete activities to start your streak!"}
-          </p>
+          {progress.streak > 0 ? (
+            <>
+              <span className="text-3xl font-extrabold font-display">
+                {progress.streak} Day Streak!
+              </span>
+              <p className="text-white/80 text-sm font-medium mt-2">
+                Keep it up! You&apos;re doing amazing!
+              </p>
+            </>
+          ) : (
+            <>
+              <span className="text-3xl font-extrabold font-display">
+                Start Your Streak Today!
+              </span>
+              <p className="text-white/80 text-sm font-medium mt-2">
+                Complete one activity to begin your streak!
+              </p>
+            </>
+          )}
           <DayDots streak={progress.streak} />
         </div>
       </div>
@@ -107,9 +152,14 @@ export default function TasksView() {
       {/* Daily Missions */}
       <section className="animate-slide-up delay-200" style={{ opacity: 0 }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold font-display">📝 Today&apos;s Missions</h2>
+          <h2 className="text-lg font-bold font-display">Today&apos;s Missions 📝</h2>
           <span className="text-sm font-semibold text-violet-600 bg-violet-100 px-3 py-1 rounded-full">{dailyCompleted}/{dailyTasks.length}</span>
         </div>
+        {noTasksCompleted && (
+          <p className="text-sm text-muted-foreground mb-3 -mt-1">
+            You&apos;re just getting started! Complete your first mission. 💪
+          </p>
+        )}
         <div className="space-y-3">
           {dailyTasks.map((task) => (
             <TaskCard
@@ -129,7 +179,7 @@ export default function TasksView() {
       {/* Weekly Missions */}
       <section className="animate-slide-up delay-300" style={{ opacity: 0 }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold font-display">🗓️ Weekly Missions</h2>
+          <h2 className="text-lg font-bold font-display">Weekly Missions 🗓️</h2>
           <span className="text-sm font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">{weeklyCompleted}/{weeklyTasks.length}</span>
         </div>
         <div className="space-y-3">
@@ -150,7 +200,7 @@ export default function TasksView() {
 
       {/* Achievements */}
       <section className="animate-slide-up delay-400" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">🏆 Achievements</h2>
+        <h2 className="text-lg font-bold font-display mb-3">Achievements 🏆</h2>
 
         {unlockedAchievements.length > 0 && (
           <div className="mb-4">
@@ -166,7 +216,23 @@ export default function TasksView() {
           </div>
         )}
 
-        {lockedAchievements.length > 0 && (
+        {/* Next to Unlock */}
+        {nextToUnlock.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-violet-500 uppercase tracking-wider mb-2">🎯 Next to Unlock</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {nextToUnlock.map((ach, i) => (
+                <div key={ach.achievement_id} className="bg-gradient-to-br from-violet-50/50 to-fuchsia-50/50 border-2 border-violet-200/50 rounded-xl p-3 text-center">
+                  <span className="text-2xl block opacity-60">{ach.emoji}</span>
+                  <span className="text-[10px] font-bold text-violet-400 block mt-1">{ach.description}</span>
+                  <span className="text-[9px] text-violet-300 block mt-0.5">+{ach.xp_reward} XP</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {lockedAchievements.length > 0 && unlockedAchievements.length === 0 && (
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">🔒 Keep going to unlock!</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -178,6 +244,14 @@ export default function TasksView() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {unlockedAchievements.length === 0 && (
+          <div className="empty-state-card rounded-xl p-6 text-center mt-3">
+            <span className="text-3xl block mb-2">🏆</span>
+            <p className="text-sm font-semibold text-gray-500">Achievements to Unlock!</p>
+            <p className="text-xs text-muted-foreground mt-1">Complete activities to earn your first achievement</p>
           </div>
         )}
       </section>

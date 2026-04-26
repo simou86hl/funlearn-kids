@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useApp, ViewType } from "@/lib/store";
-import { Home, BookOpen, Gamepad2, ListChecks, User, Trophy } from "lucide-react";
+import { Home, BookOpen, Gamepad2, ListChecks, User, Trophy, Star } from "lucide-react";
 
 interface NavTab {
   view: ViewType;
@@ -12,12 +13,12 @@ interface NavTab {
 }
 
 const TABS: NavTab[] = [
-  { view: "home",      emoji: "🏠", label: "Home",   desc: "Explore", Icon: Home },
-  { view: "quizzes",   emoji: "📝", label: "Quizzes", desc: "Learn",   Icon: BookOpen },
-  { view: "games",     emoji: "🎮", label: "Games",   desc: "Play",    Icon: Gamepad2 },
+  { view: "home",        emoji: "🏠", label: "Home",   desc: "Explore", Icon: Home },
+  { view: "quizzes",     emoji: "📝", label: "Quizzes", desc: "Learn",   Icon: BookOpen },
+  { view: "games",       emoji: "🎮", label: "Games",   desc: "Play",    Icon: Gamepad2 },
   { view: "leaderboard", emoji: "🏆", label: "Ranks",  desc: "Compete", Icon: Trophy },
-  { view: "tasks",     emoji: "📋", label: "Tasks",   desc: "Missions", Icon: ListChecks },
-  { view: "profile",   emoji: "👤", label: "Profile", desc: "Stats",   Icon: User },
+  { view: "tasks",       emoji: "📋", label: "Tasks",   desc: "Missions", Icon: ListChecks },
+  { view: "profile",     emoji: "👤", label: "Profile", desc: "Stats",   Icon: User },
 ];
 
 const HIDDEN_VIEWS: ViewType[] = ["quiz-player", "game-player"];
@@ -26,13 +27,28 @@ function shouldHideNav(currentView: ViewType): boolean {
   return HIDDEN_VIEWS.includes(currentView);
 }
 
-// ─── BottomNav ───
+export function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const onChange = (e: MediaQueryListEvent | MediaQueryList) => setIsDesktop(e.matches);
+    onChange(mql);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return isDesktop;
+}
+
+// ─── BottomNav (mobile only) ───
 
 export function BottomNav() {
   const { state, navigate } = useApp();
+  const isDesktop = useIsDesktop();
   const { currentView } = state;
 
-  if (shouldHideNav(currentView)) return null;
+  if (shouldHideNav(currentView) || isDesktop) return null;
 
   const activeIndex = TABS.findIndex((t) => t.view === currentView);
 
@@ -54,7 +70,7 @@ export function BottomNav() {
           />
         )}
 
-        {TABS.map(({ view, emoji, label, desc, Icon }) => {
+        {TABS.map(({ view, label, Icon }) => {
           const isActive = currentView === view;
 
           return (
@@ -88,7 +104,7 @@ export function BottomNav() {
                   strokeWidth={isActive ? 2.5 : 1.8}
                 />
                 <span className="hidden sm:inline text-xl leading-none">
-                  {emoji}
+                  {TABS.find((t) => t.view === view)?.emoji}
                 </span>
               </span>
 
@@ -101,7 +117,7 @@ export function BottomNav() {
               </span>
 
               <span className="hidden md:block text-[8px] text-gray-300 leading-tight">
-                {desc}
+                {TABS.find((t) => t.view === view)?.desc}
               </span>
             </button>
           );
@@ -111,13 +127,14 @@ export function BottomNav() {
   );
 }
 
-// ─── TopBar ───
+// ─── TopBar (mobile only) ───
 
 export function TopBar() {
   const { state, navigate } = useApp();
+  const isDesktop = useIsDesktop();
   const { currentView, progress } = state;
 
-  if (shouldHideNav(currentView)) return null;
+  if (shouldHideNav(currentView) || isDesktop) return null;
 
   const { totalXP, level, streak } = progress;
   const streakVisible = streak > 0;
@@ -141,30 +158,22 @@ export function TopBar() {
 
         {/* Stats */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Streak */}
           {streakVisible && (
             <span
               className="flex items-center gap-1 rounded-full bg-gradient-to-r from-orange-50 to-red-50 px-2.5 py-1.5 text-xs font-bold text-orange-500 shadow-sm transition-all duration-200 active:scale-95 animate-spring border border-orange-200/50"
               title={`You're on a ${streak}-day streak!`}
             >
-              <span role="img" aria-hidden="true" className="text-sm">
-                🔥
-              </span>
+              <span role="img" aria-hidden="true" className="text-sm">🔥</span>
               {streak}
             </span>
           )}
 
-          {/* Level */}
           <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-primary shadow-sm transition-all duration-200 active:scale-95 animate-glow border border-primary/10">
-            <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
-            </svg>
+            <Star className="w-3.5 h-3.5 fill-current" />
             <span className="hidden sm:inline">Lv&nbsp;</span>{level}
           </span>
 
-          {/* XP */}
           <span className="rounded-full bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-primary shadow-sm border border-violet-200/30 transition-all duration-200">
-            <span className="hidden sm:inline">{'</>'}</span>
             {totalXP.toLocaleString()} XP
           </span>
         </div>
@@ -173,11 +182,86 @@ export function TopBar() {
   );
 }
 
+// ─── DesktopSidebar (desktop only) ───
+
+export function DesktopSidebar() {
+  const { state, navigate } = useApp();
+  const isDesktop = useIsDesktop();
+  const { currentView, progress, profileName, profileAvatar } = state;
+
+  if (!isDesktop || shouldHideNav(currentView)) return null;
+
+  const xpInLevel = progress.totalXP % 100;
+
+  return (
+    <aside className="desktop-sidebar glass flex flex-col py-6 border-r border-white/20" role="navigation" aria-label="Desktop navigation">
+      {/* Logo */}
+      <div className="px-6 mb-8">
+        <button
+          onClick={() => navigate("home")}
+          className="flex items-center gap-2 transition-all duration-300 hover:opacity-80 active:scale-95"
+          aria-label="Go to home"
+        >
+          <span className="text-3xl leading-none animate-bounce-slow" role="img" aria-hidden="true">🌟</span>
+          <h1 className="logo-gradient text-xl font-extrabold tracking-tight font-display">
+            FunLearn Kids
+          </h1>
+        </button>
+      </div>
+
+      {/* Navigation Items */}
+      <nav className="flex-1 px-3 space-y-1">
+        {TABS.map(({ view, label, Icon }) => {
+          const isActive = currentView === view;
+          return (
+            <button
+              key={view}
+              onClick={() => navigate(view)}
+              className={`sidebar-nav-item w-full flex items-center gap-3 px-4 py-3 rounded-r-xl text-sm font-semibold transition-all ${
+                isActive
+                  ? "active text-primary"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              aria-current={isActive ? "page" : undefined}
+            >
+              <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
+              <span>{label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* User Info */}
+      <div className="px-6 pt-6 border-t border-gray-200/60">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl ring-2 ring-primary/20">
+            {profileAvatar}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm text-gray-800 truncate">{profileName}</p>
+            <p className="text-xs text-gray-500">
+              Level {progress.level} &bull; {xpInLevel}/100 XP
+            </p>
+          </div>
+        </div>
+        {/* Mini XP bar */}
+        <div className="mt-2 w-full bg-gray-200/80 rounded-full h-1.5 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-500 rounded-full transition-all duration-500"
+            style={{ width: `${xpInLevel}%` }}
+          />
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 export default function Navigation() {
   return (
     <>
       <TopBar />
       <BottomNav />
+      <DesktopSidebar />
     </>
   );
 }

@@ -2,6 +2,7 @@
 import React from "react";
 import { useState, useMemo } from "react";
 import { useApp } from "@/lib/store";
+import { useIsDesktop } from "@/components/kids/Navigation";
 
 const FAKE_AVATARS = ["🦊", "🐼", "🐸", "🦄", "🐯", "🐱", "🐶", "🐰", "🦉", "🐨", "🐵", "🦁", "🐲", "🦋", "🐬"];
 
@@ -46,17 +47,17 @@ const PodiumCard = React.memo(function PodiumCard({ player, place, height }: {
 
   return (
     <div className="flex flex-col items-center animate-spring" style={{ animationDelay: `${place * 150}ms` }}>
-      <div className={`bg-gradient-to-b ${g.card} rounded-2xl p-4 text-white shadow-xl text-center w-28 sm:w-32 ${player.isCurrentUser ? "ring-4 ring-violet-400 animate-glow" : ""}`}>
-        <span className="text-lg block mb-0.5">{medals[place]}</span>
-        <span className={`text-2xl block mb-1 ${place === 1 ? "animate-bounce-slow" : ""}`}>{player.avatar}</span>
+      <div className={`bg-gradient-to-b ${g.card} rounded-2xl p-3 sm:p-4 text-white shadow-xl text-center w-24 sm:w-32 ${player.isCurrentUser ? "ring-4 ring-violet-400 animate-glow" : ""}`}>
+        <span className="text-sm sm:text-lg block mb-0.5">{medals[place]}</span>
+        <span className={`text-xl sm:text-2xl block mb-1 ${place === 1 ? "animate-bounce-slow" : ""}`}>{player.avatar}</span>
         <span className="text-[10px] sm:text-xs font-bold block truncate">{player.name}</span>
         <span className="text-xs sm:text-sm font-bold">{player.xp} XP</span>
         <span className="text-[10px] font-semibold opacity-80 block">Lvl {player.level}</span>
       </div>
-      <div className={`bg-gradient-to-t ${g.base} rounded-t-lg w-28 sm:w-32 flex items-center justify-center mt-1 shadow-inner`} style={{ height }}>
+      <div className={`bg-gradient-to-t ${g.base} rounded-t-lg w-24 sm:w-32 flex items-center justify-center mt-1 shadow-inner`} style={{ height }}>
         <div className="text-center">
-          <span className="text-xl sm:text-2xl">{place === 1 ? "🥇" : place === 2 ? "🥈" : "🥉"}</span>
-          <span className="text-sm font-extrabold text-amber-800 block">{place}{place === 1 ? "st" : place === 2 ? "nd" : "rd"}</span>
+          <span className="text-lg sm:text-2xl">{place === 1 ? "🥇" : place === 2 ? "🥈" : "🥉"}</span>
+          <span className="text-xs sm:text-sm font-extrabold text-amber-800 block">{place}{place === 1 ? "st" : place === 2 ? "nd" : "rd"}</span>
         </div>
       </div>
     </div>
@@ -65,6 +66,7 @@ const PodiumCard = React.memo(function PodiumCard({ player, place, height }: {
 
 export default function LeaderboardView() {
   const { state } = useApp();
+  const isDesktop = useIsDesktop();
   const { progress, profileName, profileAvatar } = state;
   const [activeTab, setActiveTab] = useState<"all" | "quizzes" | "games">("all");
 
@@ -92,7 +94,7 @@ export default function LeaderboardView() {
       {/* Header */}
       <div className="text-center animate-slide-up" style={{ opacity: 0 }}>
         <h1 className="text-2xl font-extrabold font-display">
-          <span className="gradient-text">🏆</span> Leaderboard
+          <span className="gradient-text">Leaderboard</span> 🏆
         </h1>
         <p className="text-muted-foreground mt-1">See how you rank against other learners!</p>
       </div>
@@ -109,11 +111,11 @@ export default function LeaderboardView() {
         ))}
       </div>
 
-      {/* Podium */}
-      <div className="podium-3d flex items-end justify-center gap-2 sm:gap-3 pt-4 animate-slide-up delay-200" style={{ opacity: 0 }}>
-        {podiumOrder[0] && <PodiumCard player={podiumOrder[0]} place={2} height="96px" />}
-        {podiumOrder[1] && <PodiumCard player={podiumOrder[1]} place={1} height="144px" />}
-        {podiumOrder[2] && <PodiumCard player={podiumOrder[2]} place={3} height="64px" />}
+      {/* Podium — compact on mobile */}
+      <div className="podium-3d flex items-end justify-center gap-2 sm:gap-3 pt-2 sm:pt-4 animate-slide-up delay-200" style={{ opacity: 0 }}>
+        {podiumOrder[0] && <PodiumCard player={podiumOrder[0]} place={2} height={isDesktop ? "96px" : "72px"} />}
+        {podiumOrder[1] && <PodiumCard player={podiumOrder[1]} place={1} height={isDesktop ? "144px" : "104px"} />}
+        {podiumOrder[2] && <PodiumCard player={podiumOrder[2]} place={3} height={isDesktop ? "72px" : "52px"} />}
       </div>
 
       {/* Your Rank */}
@@ -126,10 +128,10 @@ export default function LeaderboardView() {
         </p>
       </div>
 
-      {/* Full Rankings */}
+      {/* Full Rankings — wider on desktop */}
       <section className="animate-slide-up delay-400" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">📊 Full Rankings</h2>
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        <h2 className="text-lg font-bold font-display mb-3">Full Rankings 📊</h2>
+        <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar">
           {leaderboard.map((player, index) => {
             const rank = index + 1;
             const isUser = player.isCurrentUser;
@@ -157,11 +159,19 @@ export default function LeaderboardView() {
                   </h4>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs text-gray-400">Level {player.level}</span>
-                    <div className="flex-1 max-w-16 bg-gray-100 rounded-full h-1 overflow-hidden">
+                    <div className={`flex-1 ${isDesktop ? "max-w-32" : "max-w-16"} bg-gray-100 rounded-full h-1 overflow-hidden`}>
                       <div className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-400 rounded-full" style={{ width: `${(player.xp / maxXp) * 100}%` }} />
                     </div>
                   </div>
                 </div>
+
+                {/* Desktop: show more info */}
+                {isDesktop && (
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    <span className="text-xs text-gray-400 font-medium">{player.level} levels</span>
+                    <span className="text-xs text-gray-400 font-medium">{Math.floor(player.xp / 100) * 100} XP milestone</span>
+                  </div>
+                )}
 
                 <span className={`text-sm font-extrabold flex-shrink-0 ${isUser ? "text-violet-600" : "text-gray-600"}`}>
                   {player.xp} XP

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useApp } from "@/lib/store";
 import { achievements } from "@/data/achievements";
 import { quizzes } from "@/data/quizzes";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, BookOpen, Gamepad2 } from "lucide-react";
 
 const AVATAR_OPTIONS = ["🦁", "🐼", "🦊", "🐸", "🦄", "🐯", "🐱", "🐶", "🐰", "🦉", "🐨", "🐵"];
 
@@ -16,11 +16,27 @@ const ACHIEVEMENT_CATEGORIES = [
   { key: "subjects", label: "🌍 Subjects", color: "from-emerald-400 to-teal-500" },
 ];
 
-const StatCard = React.memo(function StatCard({ emoji, value, label, accent }: {
-  emoji: string; value: string | number; label: string; accent: string;
+const StatCard = React.memo(function StatCard({ emoji, value, label, isZero, motivationalText, ctaText, onCta }: {
+  emoji: string; value: string | number; label: string; isZero: boolean; motivationalText?: string; ctaText?: string; onCta?: () => void;
 }) {
+  if (isZero && motivationalText) {
+    return (
+      <div className="empty-state-card rounded-xl p-4 text-center col-span-1">
+        <span className="text-3xl block mb-1">{emoji}</span>
+        <p className="text-xs font-bold text-primary">{motivationalText}</p>
+        {ctaText && onCta && (
+          <button
+            onClick={onCta}
+            className="mt-2 text-xs font-bold text-violet-600 bg-violet-100 px-3 py-1.5 rounded-full hover:bg-violet-200 transition-colors active:scale-95"
+          >
+            {ctaText}
+          </button>
+        )}
+      </div>
+    );
+  }
   return (
-    <div className={`bg-white rounded-xl p-4 text-center border-2 ${accent} kid-card`}>
+    <div className="bg-white rounded-xl p-4 text-center border-2 border-gray-100 kid-card">
       <span className="text-2xl block mb-1">{emoji}</span>
       <span className="text-xl font-extrabold block">{value}</span>
       <span className="text-xs font-semibold text-gray-500">{label}</span>
@@ -29,7 +45,7 @@ const StatCard = React.memo(function StatCard({ emoji, value, label, accent }: {
 });
 
 export default function ProfileView() {
-  const { state, setProfile, dispatch, toggleSound } = useApp();
+  const { state, setProfile, dispatch, toggleSound, navigate } = useApp();
   const { progress, profileName, profileAvatar, soundEnabled } = state;
 
   const [isEditingName, setIsEditingName] = useState(false);
@@ -73,6 +89,9 @@ export default function ProfileView() {
       .filter(Boolean)
       .reverse();
   }, [progress.quizzesCompleted, progress.quizScores]);
+
+  // Preview achievements for zero-state
+  const previewAchievements = achievements.slice(0, 3);
 
   const handleNameSave = () => {
     const trimmed = editName.trim();
@@ -171,17 +190,45 @@ export default function ProfileView() {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid — Aspirational Empty States */}
       <div className="grid grid-cols-2 gap-3 animate-slide-up delay-100" style={{ opacity: 0 }}>
-        <StatCard emoji="📝" value={progress.quizzesCompleted.length} label="Quizzes Done" accent="border-violet-100" />
-        <StatCard emoji="🎮" value={progress.gamesPlayed.length} label="Games Played" accent="border-pink-100" />
-        <StatCard emoji="🔥" value={progress.streak} label="Day Streak" accent="border-orange-100" />
-        <StatCard emoji="🏆" value={`${progress.achievementsUnlocked.length}/${achievements.length}`} label="Achievements" accent="border-amber-100" />
+        <StatCard
+          emoji="📝"
+          value={progress.quizzesCompleted.length}
+          label="Quizzes Done"
+          isZero={progress.quizzesCompleted.length === 0}
+          motivationalText="Ready to Learn!"
+          ctaText="Browse Quizzes"
+          onCta={() => navigate("quizzes")}
+        />
+        <StatCard
+          emoji="🎮"
+          value={progress.gamesPlayed.length}
+          label="Games Played"
+          isZero={progress.gamesPlayed.length === 0}
+          motivationalText="Games Await!"
+          ctaText="Explore Games"
+          onCta={() => navigate("games")}
+        />
+        <StatCard
+          emoji="🔥"
+          value={progress.streak > 0 ? progress.streak : "☀️"}
+          label="Day Streak"
+          isZero={progress.streak === 0}
+          motivationalText="Start Your Journey!"
+        />
+        <StatCard
+          emoji="🏆"
+          value={`${progress.achievementsUnlocked.length}/${achievements.length}`}
+          label="Achievements"
+          isZero={progress.achievementsUnlocked.length === 0}
+          motivationalText="Achievements to Unlock!"
+        />
       </div>
 
       {/* Achievement Showcase */}
       <section className="animate-slide-up delay-200" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">🏆 Your Achievements</h2>
+        <h2 className="text-lg font-bold font-display mb-3">Your Achievements 🏆</h2>
         {ACHIEVEMENT_CATEGORIES.map((cat) => {
           const categoryAchievements = achievementsByCategory[cat.key];
           if (!categoryAchievements || categoryAchievements.length === 0) return null;
@@ -216,19 +263,42 @@ export default function ProfileView() {
             </div>
           );
         })}
+
+        {/* Zero-state achievement preview */}
+        {progress.achievementsUnlocked.length === 0 && (
+          <div className="mt-3">
+            <p className="text-xs font-semibold text-violet-500 uppercase tracking-wider mb-2">🎯 Next Achievements to Unlock</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {previewAchievements.map((ach) => (
+                <div key={ach.achievement_id} className="bg-gradient-to-br from-violet-50/50 to-fuchsia-50/50 border-2 border-violet-200/50 rounded-xl p-3 text-center">
+                  <span className="text-2xl block opacity-60">{ach.emoji}</span>
+                  <span className="text-[10px] font-bold text-violet-500 block mt-1">{ach.title}</span>
+                  <span className="text-[9px] text-violet-400 block mt-0.5">{ach.description}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Quiz History */}
       <section className="animate-slide-up delay-300" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">📊 Recent Quiz Scores</h2>
+        <h2 className="text-lg font-bold font-display mb-3">Recent Quiz Scores 📊</h2>
         {completedQuizData.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center border-2 border-dashed border-gray-200">
-            <span className="text-4xl block mb-2">📝</span>
-            <p className="text-gray-400 text-sm font-medium">No quizzes completed yet!</p>
-            <p className="text-gray-300 text-xs mt-1">Start a quiz to see your scores here.</p>
+          <div className="empty-state-card rounded-xl p-8 text-center">
+            <BookOpen className="w-10 h-10 text-violet-300 mx-auto mb-3" />
+            <p className="text-gray-500 text-sm font-bold mb-1">No quizzes completed yet!</p>
+            <p className="text-gray-400 text-xs mb-4">Start a quiz to see your scores here.</p>
+            <button
+              onClick={() => navigate("quizzes")}
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-sm font-bold shadow-md hover:opacity-90 transition-all active:scale-95"
+            >
+              <BookOpen className="w-4 h-4" />
+              Browse Quizzes
+            </button>
           </div>
         ) : (
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
             {completedQuizData.map((quiz) => {
               if (!quiz) return null;
               const score = quiz.score;
@@ -251,7 +321,7 @@ export default function ProfileView() {
 
       {/* Settings */}
       <section className="animate-slide-up delay-400" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">⚙️ Settings</h2>
+        <h2 className="text-lg font-bold font-display mb-3">Settings ⚙️</h2>
         <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
           <button onClick={toggleSound} className="w-full flex items-center justify-between p-4 transition-all active:bg-gray-50">
             <div className="flex items-center gap-3">

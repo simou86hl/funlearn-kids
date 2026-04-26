@@ -1,7 +1,7 @@
 "use client";
 
 import { AppProvider, useApp } from "@/lib/store";
-import { TopBar, BottomNav } from "@/components/kids/Navigation";
+import { TopBar, BottomNav, DesktopSidebar, useIsDesktop } from "@/components/kids/Navigation";
 import HomeView from "@/components/kids/HomeView";
 import QuizBrowser from "@/components/kids/QuizBrowser";
 import QuizPlayer from "@/components/kids/QuizPlayer";
@@ -51,14 +51,25 @@ function NotificationToast() {
 
 function AppContent() {
   const { state } = useApp();
+  const isDesktop = useIsDesktop();
   const showNav = state.currentView !== "quiz-player" && state.currentView !== "game-player";
+  const isPlayer = state.currentView === "quiz-player" || state.currentView === "game-player";
 
   return (
     <div className="min-h-screen bg-background">
-      {showNav && <TopBar />}
+      {/* Desktop sidebar rendered via Navigation exports, but we also render it here for layout */}
+      {showNav && <DesktopSidebar />}
 
-      <main className={`${showNav ? "pt-16 pb-24" : ""}`}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+      <main
+        className={`${
+          showNav && isDesktop ? "lg:ml-64" : ""
+        } ${
+          !isPlayer && !isDesktop ? "pt-16 pb-24" : ""
+        } ${
+          !isPlayer && isDesktop ? "pt-6" : ""
+        }`}
+      >
+        <div className={`${isDesktop ? "max-w-6xl" : "max-w-5xl"} mx-auto px-4 sm:px-6`}>
           {state.currentView === "home" && <HomeView />}
           {state.currentView === "quizzes" && <QuizBrowser />}
           {state.currentView === "quiz-player" && <QuizPlayer />}
