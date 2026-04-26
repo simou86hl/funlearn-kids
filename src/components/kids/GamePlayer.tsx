@@ -1195,7 +1195,7 @@ export default function GamePlayer() {
   }
 
   return (
-    <div key={key}>
+    <div>
       {game.type === "memory" && (
         <MemoryGame
           gameId={gameId}
