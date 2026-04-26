@@ -1,43 +1,43 @@
 "use client";
-
+import React from "react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useApp } from "@/lib/store";
 import { achievements } from "@/data/achievements";
 import { quizzes } from "@/data/quizzes";
+import { Volume2, VolumeX } from "lucide-react";
 
-const AVATAR_OPTIONS = [
-  "🦁",
-  "🐼",
-  "🦊",
-  "🐸",
-  "🦄",
-  "🐯",
-  "🐱",
-  "🐶",
-  "🐰",
-  "🦉",
-  "🐨",
-  "🐵",
-];
+const AVATAR_OPTIONS = ["🦁", "🐼", "🦊", "🐸", "🦄", "🐯", "🐱", "🐶", "🐰", "🦉", "🐨", "🐵"];
 
 const ACHIEVEMENT_CATEGORIES = [
-  { key: "quizzes", label: "📚 Quizzes", color: "from-blue-400 to-indigo-500" },
+  { key: "quizzes", label: "📚 Quizzes", color: "from-violet-400 to-purple-500" },
   { key: "games", label: "🎮 Games", color: "from-pink-400 to-rose-500" },
   { key: "streak", label: "🔥 Streak", color: "from-orange-400 to-red-500" },
-  { key: "xp", label: "⭐ XP", color: "from-yellow-400 to-amber-500" },
-  { key: "subjects", label: "🌍 Subjects", color: "from-green-400 to-emerald-500" },
+  { key: "xp", label: "⭐ XP", color: "from-amber-400 to-yellow-500" },
+  { key: "subjects", label: "🌍 Subjects", color: "from-emerald-400 to-teal-500" },
 ];
 
+const StatCard = React.memo(function StatCard({ emoji, value, label, accent }: {
+  emoji: string; value: string | number; label: string; accent: string;
+}) {
+  return (
+    <div className={`bg-white rounded-xl p-4 text-center border-2 ${accent} kid-card`}>
+      <span className="text-2xl block mb-1">{emoji}</span>
+      <span className="text-xl font-extrabold block">{value}</span>
+      <span className="text-xs font-semibold text-gray-500">{label}</span>
+    </div>
+  );
+});
+
 export default function ProfileView() {
-  const { state, setProfile, dispatch } = useApp();
-  const { progress, profileName, profileAvatar } = state;
+  const { state, setProfile, dispatch, toggleSound } = useApp();
+  const { progress, profileName, profileAvatar, soundEnabled } = state;
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState(profileName);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Focus input when editing
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
       nameInputRef.current.focus();
@@ -45,7 +45,6 @@ export default function ProfileView() {
     }
   }, [isEditingName]);
 
-  // Calculate level progress
   const currentLevel = progress.level;
   const xpForCurrentLevel = (currentLevel - 1) * 100;
   const xpForNextLevel = currentLevel * 100;
@@ -53,7 +52,8 @@ export default function ProfileView() {
   const xpNeeded = xpForNextLevel - xpForCurrentLevel;
   const levelProgress = Math.min((xpInLevel / xpNeeded) * 100, 100);
 
-  // Group achievements by category
+  const circumference = 2 * Math.PI * 52;
+
   const achievementsByCategory = useMemo(() => {
     const grouped: Record<string, typeof achievements> = {};
     ACHIEVEMENT_CATEGORIES.forEach((cat) => {
@@ -62,7 +62,6 @@ export default function ProfileView() {
     return grouped;
   }, []);
 
-  // Get completed quizzes with scores
   const completedQuizData = useMemo(() => {
     return progress.quizzesCompleted
       .map((quizId) => {
@@ -72,16 +71,13 @@ export default function ProfileView() {
         return { ...quiz, score };
       })
       .filter(Boolean)
-      .reverse(); // Most recent first
+      .reverse();
   }, [progress.quizzesCompleted, progress.quizScores]);
 
   const handleNameSave = () => {
     const trimmed = editName.trim();
-    if (trimmed.length > 0 && trimmed.length <= 20) {
-      setProfile(trimmed, profileAvatar);
-    } else {
-      setEditName(profileName);
-    }
+    if (trimmed.length > 0 && trimmed.length <= 20) setProfile(trimmed, profileAvatar);
+    else setEditName(profileName);
     setIsEditingName(false);
   };
 
@@ -91,298 +87,205 @@ export default function ProfileView() {
   };
 
   const handleResetProgress = () => {
-    if (window.confirm("Are you sure you want to reset ALL your progress? This cannot be undone! 🚨")) {
-      if (window.confirm("Really? You'll lose all your XP, streaks, and achievements! 😢")) {
-        localStorage.removeItem("kidlearn-progress");
-        dispatch({ type: "LOAD_STATE" });
-      }
-    }
+    localStorage.removeItem("kidlearn-progress");
+    dispatch({ type: "LOAD_STATE" });
+    setShowResetConfirm(false);
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-500 bg-green-100";
-    if (score >= 50) return "text-yellow-600 bg-yellow-100";
+    if (score >= 80) return "text-emerald-500 bg-emerald-100";
+    if (score >= 50) return "text-amber-600 bg-amber-100";
     return "text-red-500 bg-red-100";
   };
 
+  const getScoreBarColor = (score: number) => {
+    if (score >= 80) return "from-emerald-400 to-emerald-500";
+    if (score >= 50) return "from-amber-400 to-amber-500";
+    return "from-red-400 to-red-500";
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-indigo-50 pb-24">
-      <div className="max-w-lg mx-auto px-4 pt-6 space-y-6">
-        {/* ===== PROFILE HEADER ===== */}
-        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex flex-col items-center gap-3">
-            {/* Avatar */}
-            <button
-              onClick={() => setShowAvatarPicker(!showAvatarPicker)}
-              className="relative group"
-            >
-              <span className="text-6xl block group-hover:scale-110 transition-transform">
-                {profileAvatar}
-              </span>
-              <span className="absolute -bottom-1 -right-1 bg-white text-purple-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md">
-                ✏️
-              </span>
-            </button>
+    <div className="space-y-6 pb-8">
+      {/* Profile Header */}
+      <div className="hero-gradient rounded-3xl p-6 text-white shadow-xl relative overflow-hidden animate-slide-up" style={{ opacity: 0 }}>
+        <span className="absolute -top-4 -right-4 text-6xl opacity-10">🌟</span>
+        <div className="flex flex-col items-center gap-3 relative z-10">
+          <button onClick={() => setShowAvatarPicker(!showAvatarPicker)} className="relative group">
+            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-5xl group-hover:scale-110 transition-transform ring-4 ring-white/30">
+              {profileAvatar}
+            </div>
+            <span className="absolute -bottom-1 -right-1 bg-white text-violet-600 rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-md">✏️</span>
+          </button>
 
-            {/* Avatar Picker */}
-            {showAvatarPicker && (
-              <div className="bg-white rounded-xl p-3 shadow-xl animate-fade-in">
-                <p className="text-xs font-bold text-gray-500 text-center mb-2">
-                  Choose your avatar!
-                </p>
-                <div className="grid grid-cols-6 gap-1">
-                  {AVATAR_OPTIONS.map((avatar) => (
-                    <button
-                      key={avatar}
-                      onClick={() => handleAvatarChange(avatar)}
-                      className={`text-2xl p-1.5 rounded-lg hover:bg-purple-100 transition-colors ${
-                        profileAvatar === avatar
-                          ? "bg-purple-200 ring-2 ring-purple-400"
-                          : ""
-                      }`}
-                    >
-                      {avatar}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Editable Name */}
-            <div className="text-center">
-              {isEditingName ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={nameInputRef}
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleNameSave();
-                      if (e.key === "Escape") {
-                        setEditName(profileName);
-                        setIsEditingName(false);
-                      }
-                    }}
-                    maxLength={20}
-                    className="bg-white/20 border-2 border-white/40 rounded-lg px-3 py-1 text-white text-center font-bold text-lg outline-none focus:border-white placeholder-white/60"
-                    placeholder="Your name"
-                  />
-                  <button
-                    onClick={handleNameSave}
-                    className="bg-green-400 hover:bg-green-500 text-white rounded-lg px-3 py-1.5 text-sm font-bold transition-colors"
-                  >
-                    ✓
+          {showAvatarPicker && (
+            <div className="glass rounded-xl p-3 shadow-xl animate-scale-in">
+              <p className="text-xs font-bold text-gray-500 text-center mb-2">Choose your avatar!</p>
+              <div className="grid grid-cols-6 gap-1">
+                {AVATAR_OPTIONS.map((avatar) => (
+                  <button key={avatar} onClick={() => handleAvatarChange(avatar)}
+                    className={`text-2xl p-1.5 rounded-lg hover:bg-violet-100 transition-colors ${
+                      profileAvatar === avatar ? "bg-violet-200 ring-2 ring-violet-400" : ""
+                    }`}>
+                    {avatar}
                   </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setEditName(profileName);
-                    setIsEditingName(true);
-                  }}
-                  className="text-2xl font-extrabold hover:opacity-80 transition-opacity"
-                >
-                  {profileName} ✏️
-                </button>
-              )}
-            </div>
-
-            {/* Level Badge & Progress */}
-            <div className="w-full bg-white/20 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold">
-                  🏆 Level {currentLevel}
-                </span>
-                <span className="text-sm font-semibold">
-                  {progress.totalXP} Total XP
-                </span>
+                ))}
               </div>
-              <div className="bg-white/30 rounded-full h-4 overflow-hidden">
-                <div
-                  className="progress-bar-animated bg-gradient-to-r from-yellow-300 to-amber-400 h-full rounded-full flex items-center justify-end pr-1"
-                  style={{ width: `${levelProgress}%` }}
-                >
-                  {levelProgress > 20 && (
-                    <span className="text-[10px] font-bold text-amber-800">
-                      {Math.round(levelProgress)}%
-                    </span>
-                  )}
-                </div>
-              </div>
-              <p className="text-xs text-purple-200 mt-1 text-center">
-                {xpNeeded - xpInLevel} XP to Level {currentLevel + 1}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ===== STATS GRID ===== */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl p-4 text-center border-2 border-purple-100 kid-card">
-            <span className="text-3xl block">📝</span>
-            <span className="text-2xl font-extrabold text-purple-600 block">
-              {progress.quizzesCompleted.length}
-            </span>
-            <span className="text-xs font-semibold text-gray-500">
-              Quizzes Done
-            </span>
-          </div>
-          <div className="bg-white rounded-xl p-4 text-center border-2 border-pink-100 kid-card">
-            <span className="text-3xl block">🎮</span>
-            <span className="text-2xl font-extrabold text-pink-600 block">
-              {progress.gamesPlayed.length}
-            </span>
-            <span className="text-xs font-semibold text-gray-500">
-              Games Played
-            </span>
-          </div>
-          <div className="bg-white rounded-xl p-4 text-center border-2 border-orange-100 kid-card">
-            <span className="text-3xl block">🔥</span>
-            <span className="text-2xl font-extrabold text-orange-600 block">
-              {progress.streak}
-            </span>
-            <span className="text-xs font-semibold text-gray-500">
-              Day Streak
-            </span>
-          </div>
-          <div className="bg-white rounded-xl p-4 text-center border-2 border-amber-100 kid-card">
-            <span className="text-3xl block">🏆</span>
-            <span className="text-2xl font-extrabold text-amber-600 block">
-              {progress.achievementsUnlocked.length}/{achievements.length}
-            </span>
-            <span className="text-xs font-semibold text-gray-500">
-              Achievements
-            </span>
-          </div>
-        </div>
-
-        {/* ===== ACHIEVEMENT SHOWCASE ===== */}
-        <section>
-          <h2 className="text-lg font-bold text-gray-800 mb-3">
-            🏆 Your Achievements
-          </h2>
-
-          {ACHIEVEMENT_CATEGORIES.map((cat) => {
-            const categoryAchievements = achievementsByCategory[cat.key];
-            if (!categoryAchievements || categoryAchievements.length === 0)
-              return null;
-
-            return (
-              <div key={cat.key} className="mb-5">
-                <h3 className="text-sm font-bold text-gray-600 mb-2">
-                  {cat.label}
-                </h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {categoryAchievements.map((ach) => {
-                    const isUnlocked =
-                      progress.achievementsUnlocked.includes(
-                        ach.achievement_id
-                      );
-                    return (
-                      <div
-                        key={ach.achievement_id}
-                        className={`relative rounded-xl p-3 text-center transition-all ${
-                          isUnlocked
-                            ? `bg-gradient-to-br ${cat.color} text-white shadow-md`
-                            : "bg-gray-100 border-2 border-gray-200"
-                        }`}
-                      >
-                        {isUnlocked ? (
-                          <>
-                            <span className="text-2xl block">
-                              {ach.emoji}
-                            </span>
-                            <span className="text-[10px] font-bold block mt-1">
-                              {ach.title}
-                            </span>
-                            <span className="text-[9px] opacity-80 block">
-                              {ach.description}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <div className="absolute inset-0 flex items-center justify-center opacity-20 z-10 pointer-events-none">
-                              <span className="text-4xl">🔒</span>
-                            </div>
-                            <span className="text-2xl block grayscale opacity-40">
-                              {ach.emoji}
-                            </span>
-                            <span className="text-[10px] font-bold text-gray-400 block mt-1">
-                              {ach.title}
-                            </span>
-                            <span className="text-[9px] text-gray-300 block truncate">
-                              ???
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </section>
-
-        {/* ===== QUIZ HISTORY ===== */}
-        <section>
-          <h2 className="text-lg font-bold text-gray-800 mb-3">
-            📊 Recent Quiz Scores
-          </h2>
-
-          {completedQuizData.length === 0 ? (
-            <div className="bg-white rounded-xl p-8 text-center border-2 border-dashed border-gray-200">
-              <span className="text-4xl block mb-2">📝</span>
-              <p className="text-gray-400 text-sm font-medium">
-                No quizzes completed yet!
-              </p>
-              <p className="text-gray-300 text-xs mt-1">
-                Start a quiz to see your scores here.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {completedQuizData.map((quiz) => {
-                if (!quiz) return null;
-                const score = quiz.score;
-                const scoreColor = getScoreColor(score);
-                return (
-                  <div
-                    key={quiz.quiz_id}
-                    className="kid-card bg-white rounded-xl p-4 border-2 border-gray-100 flex items-center gap-3"
-                  >
-                    <span className="text-2xl">{quiz.emoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-800 text-sm truncate">
-                        {quiz.title}
-                      </h4>
-                      <p className="text-xs text-gray-400">
-                        {quiz.category} &bull; {quiz.difficulty}
-                      </p>
-                    </div>
-                    <span
-                      className={`text-sm font-extrabold px-3 py-1.5 rounded-lg ${scoreColor}`}
-                    >
-                      {score}%
-                    </span>
-                  </div>
-                );
-              })}
             </div>
           )}
-        </section>
 
-        {/* ===== RESET PROGRESS ===== */}
-        <div className="pt-4 pb-8 text-center">
-          <button
-            onClick={handleResetProgress}
-            className="text-xs text-gray-400 hover:text-red-500 transition-colors underline underline-offset-2"
-          >
-            Reset Progress
-          </button>
+          <div className="text-center">
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <input ref={nameInputRef} type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleNameSave(); if (e.key === "Escape") { setEditName(profileName); setIsEditingName(false); } }}
+                  maxLength={20} className="bg-white/20 border-2 border-white/40 rounded-lg px-3 py-1 text-white text-center font-bold text-lg outline-none focus:border-white placeholder-white/60" placeholder="Your name" />
+                <button onClick={handleNameSave} className="bg-emerald-400 hover:bg-emerald-500 text-white rounded-lg px-3 py-1.5 text-sm font-bold transition-colors active:scale-95">✓</button>
+              </div>
+            ) : (
+              <button onClick={() => { setEditName(profileName); setIsEditingName(true); }} className="text-2xl font-extrabold font-display hover:opacity-80 transition-opacity active:scale-95">
+                {profileName} ✏️
+              </button>
+            )}
+          </div>
+
+          {/* Level & XP Ring */}
+          <div className="flex items-center gap-4 mt-2">
+            <div className="relative w-28 h-28 flex-shrink-0">
+              <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="52" stroke="rgba(255,255,255,0.15)" strokeWidth="10" fill="none" />
+                <circle cx="60" cy="60" r="52" stroke="rgba(255,255,255,0.8)" strokeWidth="10" fill="none"
+                  strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - levelProgress / 100)}
+                  className="transition-all duration-700" />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-extrabold">Lv {currentLevel}</span>
+                <span className="text-xs text-white/70">{levelProgress.toFixed(0)}%</span>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-bold text-white/80">{xpInLevel} / {xpNeeded} XP</p>
+              <p className="text-xs text-white/60 mt-1">{xpNeeded - xpInLevel} XP to Level {currentLevel + 1}</p>
+              <p className="text-sm font-bold mt-2">{progress.totalXP.toLocaleString()} Total XP</p>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-3 animate-slide-up delay-100" style={{ opacity: 0 }}>
+        <StatCard emoji="📝" value={progress.quizzesCompleted.length} label="Quizzes Done" accent="border-violet-100" />
+        <StatCard emoji="🎮" value={progress.gamesPlayed.length} label="Games Played" accent="border-pink-100" />
+        <StatCard emoji="🔥" value={progress.streak} label="Day Streak" accent="border-orange-100" />
+        <StatCard emoji="🏆" value={`${progress.achievementsUnlocked.length}/${achievements.length}`} label="Achievements" accent="border-amber-100" />
+      </div>
+
+      {/* Achievement Showcase */}
+      <section className="animate-slide-up delay-200" style={{ opacity: 0 }}>
+        <h2 className="text-lg font-bold font-display mb-3">🏆 Your Achievements</h2>
+        {ACHIEVEMENT_CATEGORIES.map((cat) => {
+          const categoryAchievements = achievementsByCategory[cat.key];
+          if (!categoryAchievements || categoryAchievements.length === 0) return null;
+          return (
+            <div key={cat.key} className="mb-5">
+              <h3 className="text-sm font-bold text-gray-600 mb-2">{cat.label}</h3>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {categoryAchievements.map((ach) => {
+                  const isUnlocked = progress.achievementsUnlocked.includes(ach.achievement_id);
+                  return (
+                    <div key={ach.achievement_id} className={`flex-shrink-0 w-20 rounded-xl p-3 text-center transition-all ${
+                      isUnlocked ? `bg-gradient-to-br ${cat.color} text-white shadow-md animate-scale-in` : "bg-gray-50 border-2 border-gray-200"
+                    }`}>
+                      {isUnlocked ? (
+                        <>
+                          <span className="text-2xl block">{ach.emoji}</span>
+                          <span className="text-[9px] font-bold block mt-1 truncate">{ach.title}</span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <span className="text-2xl block grayscale opacity-40">{ach.emoji}</span>
+                            <span className="absolute inset-0 flex items-center justify-center text-lg opacity-40">🔒</span>
+                          </div>
+                          <span className="text-[9px] font-bold text-gray-400 block mt-1">???</span>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      {/* Quiz History */}
+      <section className="animate-slide-up delay-300" style={{ opacity: 0 }}>
+        <h2 className="text-lg font-bold font-display mb-3">📊 Recent Quiz Scores</h2>
+        {completedQuizData.length === 0 ? (
+          <div className="bg-white rounded-xl p-8 text-center border-2 border-dashed border-gray-200">
+            <span className="text-4xl block mb-2">📝</span>
+            <p className="text-gray-400 text-sm font-medium">No quizzes completed yet!</p>
+            <p className="text-gray-300 text-xs mt-1">Start a quiz to see your scores here.</p>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {completedQuizData.map((quiz) => {
+              if (!quiz) return null;
+              const score = quiz.score;
+              return (
+                <div key={quiz.quiz_id} className="kid-card bg-white rounded-xl p-3.5 border border-gray-100 flex items-center gap-3">
+                  <span className="text-2xl flex-shrink-0">{quiz.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-800 text-sm truncate">{quiz.title}</h4>
+                    <div className="mt-1 w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${getScoreBarColor(score)} rounded-full`} style={{ width: `${score}%` }} />
+                    </div>
+                  </div>
+                  <span className={`text-sm font-extrabold px-2.5 py-1 rounded-lg flex-shrink-0 ${getScoreColor(score)}`}>{score}%</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Settings */}
+      <section className="animate-slide-up delay-400" style={{ opacity: 0 }}>
+        <h2 className="text-lg font-bold font-display mb-3">⚙️ Settings</h2>
+        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+          <button onClick={toggleSound} className="w-full flex items-center justify-between p-4 transition-all active:bg-gray-50">
+            <div className="flex items-center gap-3">
+              {soundEnabled ? <Volume2 className="w-5 h-5 text-violet-500" /> : <VolumeX className="w-5 h-5 text-gray-400" />}
+              <span className="font-medium text-gray-700">Sound Effects</span>
+            </div>
+            <div className={`w-11 h-6 rounded-full transition-colors relative ${soundEnabled ? "bg-violet-500" : "bg-gray-300"}`}>
+              <div className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-0.5 transition-all ${soundEnabled ? "left-5.5" : "left-0.5"}`} />
+            </div>
+          </button>
+          <button onClick={() => setShowResetConfirm(true)} className="w-full flex items-center justify-between p-4 transition-all active:bg-gray-50">
+            <div className="flex items-center gap-3">
+              <span className="text-lg">🗑️</span>
+              <span className="font-medium text-gray-700">Reset Progress</span>
+            </div>
+            <span className="text-xs text-red-400 font-semibold">Danger Zone</span>
+          </button>
+        </div>
+      </section>
+
+      {/* Reset Confirmation */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass rounded-3xl p-6 max-w-sm w-full text-center animate-spring">
+            <div className="text-5xl mb-3">⚠️</div>
+            <h3 className="text-xl font-bold font-display mb-2">Reset All Progress?</h3>
+            <p className="text-gray-500 mb-6 text-sm">You&apos;ll lose all XP, streaks, achievements, and quiz scores. This cannot be undone!</p>
+            <div className="flex gap-3 justify-center">
+              <button onClick={() => setShowResetConfirm(false)} className="px-6 py-2.5 rounded-full border-2 border-gray-300 text-gray-600 font-semibold hover:bg-gray-50 transition-all active:scale-95">Cancel</button>
+              <button onClick={handleResetProgress} className="px-6 py-2.5 rounded-full bg-red-500 text-white font-semibold hover:bg-red-600 transition-all active:scale-95">Reset</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
