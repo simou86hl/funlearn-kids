@@ -138,7 +138,7 @@ export default function QuizPlayer() {
           <div className="text-6xl mb-4">🤔</div>
           <h2 className="text-2xl font-bold font-display mb-2">Quiz not found!</h2>
           <p className="text-gray-500 mb-6">We couldn&apos;t find the quiz you were looking for.</p>
-          <button onClick={() => navigate("quizzes")} className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-8 py-3 rounded-full text-lg font-bold hover:opacity-90 transition-all active:scale-95">
+          <button onClick={() => navigate("quizzes")} className="btn-primary px-8 py-3 rounded-full text-lg font-bold">
             Back to Quizzes
           </button>
         </div>
@@ -291,7 +291,7 @@ export default function QuizPlayer() {
             </button>
 
             <div className="flex flex-col gap-3">
-              <button onClick={handleRestart} className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white py-4 rounded-full text-lg font-bold hover:opacity-90 transition-all active:scale-[0.98] shadow-lg shadow-violet-500/20">
+              <button onClick={handleRestart} className="w-full btn-primary py-4 rounded-full text-lg font-bold shadow-lg shadow-violet-500/20">
                 🔄 Try Again
               </button>
               <button onClick={() => navigate("quizzes")} className="w-full bg-gray-100 text-gray-700 py-4 rounded-full text-lg font-semibold hover:bg-gray-200 transition-all active:scale-[0.98]">
@@ -460,7 +460,7 @@ export default function QuizPlayer() {
           <button onClick={handleSubmit} disabled={isSubmitted || (currentQ.type === "text" ? textInput.trim() === "" : selectedAnswers.length === 0)}
             className={`w-full py-4 rounded-full text-lg font-bold text-white shadow-lg transition-all duration-200 ${
               isSubmitted || (currentQ.type === "text" ? textInput.trim() === "" : selectedAnswers.length === 0)
-                ? "bg-gray-300 cursor-not-allowed" : "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 active:scale-[0.98] hover:shadow-xl shadow-violet-500/20"
+                ? "bg-gray-300 cursor-not-allowed" : "btn-primary hover:opacity-90 active:scale-[0.98] hover:shadow-xl shadow-violet-500/20"
             }`}>
             Check Answer ✓
           </button>

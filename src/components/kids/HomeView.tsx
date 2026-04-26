@@ -21,14 +21,16 @@ const CategoryCard = React.memo(function CategoryCard({ cat, count, onClick }: {
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-24 sm:w-28 h-28 sm:h-32 rounded-2xl flex flex-col items-center justify-center gap-1 text-white shadow-lg card-hover active:scale-95 transition-all relative overflow-hidden"
+      className="flex-shrink-0 w-28 sm:w-36 h-32 sm:h-36 rounded-3xl flex flex-col items-center justify-center gap-1.5 text-white shadow-xl card-hover active:scale-95 transition-all relative overflow-hidden"
       style={{ backgroundColor: cat.color }}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-      <span className="text-2xl sm:text-3xl relative z-10 animate-float">{cat.emoji}</span>
-      <span className="font-bold text-xs sm:text-sm relative z-10">{cat.name}</span>
+      <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent pointer-events-none" />
+      <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-white/10 floating-shape-1" />
+      <div className="absolute -bottom-3 -left-3 w-12 h-12 rounded-full bg-white/10 floating-shape-2" />
+      <span className="text-3xl sm:text-4xl relative z-10 animate-float">{cat.emoji}</span>
+      <span className="font-bold text-sm sm:text-base relative z-10">{cat.name}</span>
       <span className="text-[10px] opacity-80 relative z-10">{count} quizzes</span>
-      <ChevronRight className="absolute top-3 right-2 w-4 h-4 opacity-50" />
+      <ChevronRight className="absolute top-3 right-3 w-4 h-4 opacity-50" />
     </button>
   );
 });
@@ -64,32 +66,51 @@ export default function HomeView() {
 
   return (
     <div className="space-y-8 pb-8">
-      {/* Brand new user welcome */}
+      {/* Brand new user welcome — HERO section */}
       {isBrandNew ? (
-        <div className="animate-slide-up">
-          <div className="empty-state-card rounded-3xl p-8 sm:p-10 text-center">
-            <span className="text-6xl block mb-4 animate-bounce-slow">🌟</span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold font-display mb-2 gradient-text">
-              Welcome to FunLearn!
-            </h1>
-            <p className="text-muted-foreground text-lg mb-6 max-w-md mx-auto">
-              Hey {profileName}! Ready to start your learning adventure? Let&apos;s go!
-            </p>
-            <button
-              onClick={() => navigate("quizzes")}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-8 py-4 rounded-full text-lg font-bold shadow-lg shadow-violet-500/20 hover:opacity-90 transition-all active:scale-95 animate-glow"
-            >
-              <Play className="w-5 h-5 fill-current" />
-              Take Your First Quiz
-            </button>
+        <div className="animate-slide-up" style={{ opacity: 0 }}>
+          <div className="welcome-hero rounded-3xl p-8 sm:p-12 text-center relative">
+            {/* Decorative floating shapes */}
+            <div className="floating-shape floating-shape-1 top-6 left-8">
+              <div className="w-8 h-8 rounded-full bg-white" />
+            </div>
+            <div className="floating-shape floating-shape-2 top-12 right-10">
+              <div className="w-6 h-6 rounded-full bg-yellow-300" />
+            </div>
+            <div className="floating-shape floating-shape-3 bottom-10 left-16">
+              <div className="w-5 h-5 rotate-45 bg-pink-300" />
+            </div>
+            <div className="floating-shape floating-shape-4 bottom-8 right-20">
+              <div className="w-7 h-7 rounded-full bg-cyan-300" />
+            </div>
+            <div className="floating-shape floating-shape-5 top-1/2 right-6">
+              <div className="w-4 h-4 rotate-12 bg-white" />
+            </div>
+
+            <div className="relative z-10">
+              <span className="text-7xl block mb-5 animate-bounce-slow drop-shadow-lg">🌟</span>
+              <h1 className="text-3xl sm:text-4xl font-extrabold font-display mb-3 text-white drop-shadow-sm">
+                Welcome to FunLearn!
+              </h1>
+              <p className="text-white/80 text-lg mb-8 max-w-md mx-auto leading-relaxed">
+                Hey {profileName}! Ready to start your learning adventure? Let&apos;s go!
+              </p>
+              <button
+                onClick={() => navigate("quizzes")}
+                className="inline-flex items-center gap-2.5 bg-white text-violet-600 px-10 py-4 rounded-full text-lg font-extrabold shadow-xl shadow-black/10 hover:shadow-2xl hover:bg-gray-50 transition-all active:scale-95 hover:-translate-y-0.5"
+              >
+                <Play className="w-5 h-5 fill-violet-600" />
+                Take Your First Quiz
+              </button>
+            </div>
           </div>
         </div>
       ) : (
         <>
-          {/* Compact Welcome Card */}
+          {/* Compact Welcome Card — Glassmorphism */}
           <div className="animate-slide-up" style={{ opacity: 0 }}>
-            <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center text-3xl flex-shrink-0 ring-2 ring-violet-200">
+            <div className="card-premium p-4 sm:p-5 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center text-3xl flex-shrink-0 ring-2 ring-violet-200 shadow-sm">
                 {profileAvatar}
               </div>
               <div className="flex-1 min-w-0">
@@ -100,16 +121,16 @@ export default function HomeView() {
                   Level {progress.level} &bull; {xpInLevel}/100 XP
                 </p>
                 {/* Mini XP bar */}
-                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
+                <div className="w-full bg-gray-100 rounded-full h-2 mt-1.5 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-500 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-500 rounded-full transition-all duration-500 shimmer-overlay"
                     style={{ width: `${xpInLevel}%` }}
                   />
                 </div>
               </div>
               {progress.streak > 0 && (
-                <div className="flex-shrink-0 text-center">
-                  <span className="text-2xl block">🔥</span>
+                <div className="flex-shrink-0 text-center bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl px-3 py-2 border border-orange-100">
+                  <span className="text-2xl block animate-bounce-slow">🔥</span>
                   <span className="text-xs font-bold text-orange-500">{progress.streak}d</span>
                 </div>
               )}
@@ -119,15 +140,15 @@ export default function HomeView() {
           {/* Quick Play */}
           {(unplayedQuiz || unplayedGame) && (
             <div className="animate-slide-up delay-100" style={{ opacity: 0 }}>
-              <h2 className="text-lg font-bold mb-3 font-display">Quick Play</h2>
+              <h2 className="text-lg font-bold mb-3 font-display section-title">Quick Play</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {unplayedQuiz && (
                   <button
                     onClick={() => startQuiz(unplayedQuiz.quiz_id)}
-                    className="bg-white rounded-2xl p-4 shadow-sm text-left card-hover active:scale-[0.97] flex items-center gap-4 group"
+                    className="card-premium p-4 text-left card-hover active:scale-[0.97] flex items-center gap-4 group"
                   >
                     <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-sm"
                       style={{ backgroundColor: `${unplayedQuiz.color}15` }}
                     >
                       {unplayedQuiz.emoji}
@@ -143,10 +164,10 @@ export default function HomeView() {
                 {unplayedGame && (
                   <button
                     onClick={() => startGame(unplayedGame.game_id)}
-                    className="bg-white rounded-2xl p-4 shadow-sm text-left card-hover active:scale-[0.97] flex items-center gap-4 group"
+                    className="card-premium p-4 text-left card-hover active:scale-[0.97] flex items-center gap-4 group"
                   >
                     <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-sm"
                       style={{ backgroundColor: `${unplayedGame.color}15` }}
                     >
                       {unplayedGame.emoji}
@@ -165,10 +186,10 @@ export default function HomeView() {
         </>
       )}
 
-      {/* Today's Progress */}
+      {/* Today's Progress — Premium glassmorphism */}
       {!isBrandNew && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm animate-slide-up delay-200" style={{ opacity: 0 }}>
-          <h2 className="text-lg font-bold mb-3 font-display">Today&apos;s Progress</h2>
+        <div className="card-premium p-5 animate-slide-up delay-200" style={{ opacity: 0 }}>
+          <h2 className="text-lg font-bold mb-3 font-display section-title">Today&apos;s Progress</h2>
           <div className="flex items-center gap-4">
             <div className="relative w-20 h-20 flex-shrink-0">
               <svg className="w-20 h-20 -rotate-90" viewBox="0 0 100 100">
@@ -203,9 +224,9 @@ export default function HomeView() {
         </div>
       )}
 
-      {/* Category Cards */}
+      {/* Category Cards — Larger, more colorful */}
       <div className="animate-slide-up delay-300" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold mb-3 font-display">Explore Categories</h2>
+        <h2 className="text-lg font-bold mb-3 font-display section-title">Explore Categories</h2>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
           {categories.map((cat) => (
             <div key={cat.name} className="snap-start">

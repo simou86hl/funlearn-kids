@@ -37,26 +37,26 @@ const PodiumCard = React.memo(function PodiumCard({ player, place, height }: {
   place: 1 | 2 | 3;
   height: string;
 }) {
-  const gradients: Record<number, { card: string; base: string }> = {
-    1: { card: "from-amber-400 to-yellow-500", base: "from-amber-400 to-amber-300" },
-    2: { card: "from-gray-300 to-gray-400", base: "from-gray-300 to-gray-200" },
-    3: { card: "from-amber-600 to-amber-700", base: "from-amber-600 to-amber-500" },
+  const gradients: Record<number, { card: string; base: string; ring: string }> = {
+    1: { card: "from-amber-400 to-yellow-500", base: "from-amber-400 to-amber-300", ring: "ring-yellow-300" },
+    2: { card: "from-gray-300 to-gray-400", base: "from-gray-300 to-gray-200", ring: "ring-gray-300" },
+    3: { card: "from-amber-600 to-amber-700", base: "from-amber-600 to-amber-500", ring: "ring-amber-500" },
   };
   const medals: Record<number, string> = { 1: "👑", 2: "🥈", 3: "🥉" };
   const g = gradients[place];
 
   return (
     <div className="flex flex-col items-center animate-spring" style={{ animationDelay: `${place * 150}ms` }}>
-      <div className={`bg-gradient-to-b ${g.card} rounded-2xl p-3 sm:p-4 text-white shadow-xl text-center w-24 sm:w-32 ${player.isCurrentUser ? "ring-4 ring-violet-400 animate-glow" : ""}`}>
-        <span className="text-sm sm:text-lg block mb-0.5">{medals[place]}</span>
-        <span className={`text-xl sm:text-2xl block mb-1 ${place === 1 ? "animate-bounce-slow" : ""}`}>{player.avatar}</span>
-        <span className="text-[10px] sm:text-xs font-bold block truncate">{player.name}</span>
-        <span className="text-xs sm:text-sm font-bold">{player.xp} XP</span>
+      <div className={`bg-gradient-to-b ${g.card} rounded-2xl p-3 sm:p-5 text-white shadow-xl text-center w-28 sm:w-36 ${player.isCurrentUser ? `ring-4 ${g.ring} animate-glow` : ""}`}>
+        <span className="text-lg sm:text-xl block mb-0.5">{medals[place]}</span>
+        <span className={`text-3xl sm:text-4xl block mb-1 ${place === 1 ? "animate-bounce-slow" : ""}`}>{player.avatar}</span>
+        <span className="text-xs sm:text-sm font-bold block truncate">{player.name}</span>
+        <span className="text-sm sm:text-base font-bold">{player.xp} XP</span>
         <span className="text-[10px] font-semibold opacity-80 block">Lvl {player.level}</span>
       </div>
-      <div className={`bg-gradient-to-t ${g.base} rounded-t-lg w-24 sm:w-32 flex items-center justify-center mt-1 shadow-inner`} style={{ height }}>
+      <div className={`bg-gradient-to-t ${g.base} rounded-t-lg w-28 sm:w-36 flex items-center justify-center mt-1 shadow-inner`} style={{ height }}>
         <div className="text-center">
-          <span className="text-lg sm:text-2xl">{place === 1 ? "🥇" : place === 2 ? "🥈" : "🥉"}</span>
+          <span className="text-xl sm:text-3xl">{place === 1 ? "🥇" : place === 2 ? "🥈" : "🥉"}</span>
           <span className="text-xs sm:text-sm font-extrabold text-amber-800 block">{place}{place === 1 ? "st" : place === 2 ? "nd" : "rd"}</span>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function LeaderboardView() {
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div className="text-center animate-slide-up" style={{ opacity: 0 }}>
-        <h1 className="text-2xl font-extrabold font-display">
+        <h1 className="text-2xl font-extrabold font-display section-title">
           <span className="gradient-text">Leaderboard</span> 🏆
         </h1>
         <p className="text-muted-foreground mt-1">See how you rank against other learners!</p>
@@ -111,8 +111,8 @@ export default function LeaderboardView() {
         ))}
       </div>
 
-      {/* Podium — compact on mobile */}
-      <div className="podium-3d flex items-end justify-center gap-2 sm:gap-3 pt-2 sm:pt-4 animate-slide-up delay-200" style={{ opacity: 0 }}>
+      {/* Podium — more dramatic, bigger avatars */}
+      <div className="podium-3d flex items-end justify-center gap-2 sm:gap-4 pt-2 sm:pt-4 animate-slide-up delay-200" style={{ opacity: 0 }}>
         {podiumOrder[0] && <PodiumCard player={podiumOrder[0]} place={2} height={isDesktop ? "96px" : "72px"} />}
         {podiumOrder[1] && <PodiumCard player={podiumOrder[1]} place={1} height={isDesktop ? "144px" : "104px"} />}
         {podiumOrder[2] && <PodiumCard player={podiumOrder[2]} place={3} height={isDesktop ? "72px" : "52px"} />}
@@ -130,7 +130,7 @@ export default function LeaderboardView() {
 
       {/* Full Rankings — wider on desktop */}
       <section className="animate-slide-up delay-400" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">Full Rankings 📊</h2>
+        <h2 className="text-lg font-bold font-display section-title mb-3">Full Rankings 📊</h2>
         <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar">
           {leaderboard.map((player, index) => {
             const rank = index + 1;
@@ -139,15 +139,17 @@ export default function LeaderboardView() {
             return (
               <div key={player.name + player.xp}
                 className={`kid-card flex items-center gap-3 rounded-xl p-3 transition-all ${
-                  isUser ? "bg-gradient-to-r from-violet-50 to-fuchsia-50 border-2 border-violet-400 shadow-md" : "bg-white border border-gray-100"
+                  isUser ? "bg-gradient-to-r from-violet-50 to-fuchsia-50 border-2 border-violet-400 shadow-md" : "card-premium"
                 }`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-extrabold flex-shrink-0 ${
-                  rank === 1 ? "bg-gradient-to-b from-amber-400 to-yellow-500 text-white"
-                  : rank === 2 ? "bg-gradient-to-b from-gray-300 to-gray-400 text-white"
-                  : rank === 3 ? "bg-gradient-to-b from-amber-600 to-amber-700 text-white"
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-extrabold flex-shrink-0 ${
+                  rank === 1 ? "bg-gradient-to-b from-amber-400 to-yellow-500 text-white shadow-md"
+                  : rank === 2 ? "bg-gradient-to-b from-gray-300 to-gray-400 text-white shadow-sm"
+                  : rank === 3 ? "bg-gradient-to-b from-amber-600 to-amber-700 text-white shadow-sm"
                   : "bg-gray-100 text-gray-500"
                 }`}>
-                  {rank <= 3 ? "" : <span>{rank}</span>}
+                  {rank <= 3 ? (
+                    <span className="text-lg">{rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}</span>
+                  ) : <span>{rank}</span>}
                 </div>
 
                 <span className="text-2xl flex-shrink-0">{player.avatar}</span>

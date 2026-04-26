@@ -21,7 +21,7 @@ const StatCard = React.memo(function StatCard({ emoji, value, label, isZero, mot
 }) {
   if (isZero && motivationalText) {
     return (
-      <div className="empty-state-card rounded-xl p-4 text-center col-span-1">
+      <div className="stat-glass p-4 text-center col-span-1">
         <span className="text-3xl block mb-1">{emoji}</span>
         <p className="text-xs font-bold text-primary">{motivationalText}</p>
         {ctaText && onCta && (
@@ -36,7 +36,7 @@ const StatCard = React.memo(function StatCard({ emoji, value, label, isZero, mot
     );
   }
   return (
-    <div className="bg-white rounded-xl p-4 text-center border-2 border-gray-100 kid-card">
+    <div className="stat-glass p-4 text-center kid-card">
       <span className="text-2xl block mb-1">{emoji}</span>
       <span className="text-xl font-extrabold block">{value}</span>
       <span className="text-xs font-semibold text-gray-500">{label}</span>
@@ -125,7 +125,7 @@ export default function ProfileView() {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Profile Header */}
+      {/* Profile Header — Animated shifting gradient */}
       <div className="hero-gradient rounded-3xl p-6 text-white shadow-xl relative overflow-hidden animate-slide-up" style={{ opacity: 0 }}>
         <span className="absolute -top-4 -right-4 text-6xl opacity-10">🌟</span>
         <div className="flex flex-col items-center gap-3 relative z-10">
@@ -190,7 +190,7 @@ export default function ProfileView() {
         </div>
       </div>
 
-      {/* Stats Grid — Aspirational Empty States */}
+      {/* Stats Grid — Glassmorphism */}
       <div className="grid grid-cols-2 gap-3 animate-slide-up delay-100" style={{ opacity: 0 }}>
         <StatCard
           emoji="📝"
@@ -228,7 +228,7 @@ export default function ProfileView() {
 
       {/* Achievement Showcase */}
       <section className="animate-slide-up delay-200" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">Your Achievements 🏆</h2>
+        <h2 className="text-lg font-bold font-display section-title mb-3">Your Achievements 🏆</h2>
         {ACHIEVEMENT_CATEGORIES.map((cat) => {
           const categoryAchievements = achievementsByCategory[cat.key];
           if (!categoryAchievements || categoryAchievements.length === 0) return null;
@@ -240,7 +240,9 @@ export default function ProfileView() {
                   const isUnlocked = progress.achievementsUnlocked.includes(ach.achievement_id);
                   return (
                     <div key={ach.achievement_id} className={`flex-shrink-0 w-20 rounded-xl p-3 text-center transition-all ${
-                      isUnlocked ? `bg-gradient-to-br ${cat.color} text-white shadow-md animate-scale-in` : "bg-gray-50 border-2 border-gray-200"
+                      isUnlocked
+                        ? `bg-gradient-to-br ${cat.color} text-white shadow-md animate-scale-in`
+                        : "bg-gray-50 border border-gray-200 shimmer-locked"
                     }`}>
                       {isUnlocked ? (
                         <>
@@ -270,7 +272,7 @@ export default function ProfileView() {
             <p className="text-xs font-semibold text-violet-500 uppercase tracking-wider mb-2">🎯 Next Achievements to Unlock</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {previewAchievements.map((ach) => (
-                <div key={ach.achievement_id} className="bg-gradient-to-br from-violet-50/50 to-fuchsia-50/50 border-2 border-violet-200/50 rounded-xl p-3 text-center">
+                <div key={ach.achievement_id} className="card-premium p-3 text-center">
                   <span className="text-2xl block opacity-60">{ach.emoji}</span>
                   <span className="text-[10px] font-bold text-violet-500 block mt-1">{ach.title}</span>
                   <span className="text-[9px] text-violet-400 block mt-0.5">{ach.description}</span>
@@ -283,15 +285,15 @@ export default function ProfileView() {
 
       {/* Quiz History */}
       <section className="animate-slide-up delay-300" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">Recent Quiz Scores 📊</h2>
+        <h2 className="text-lg font-bold font-display section-title mb-3">Recent Quiz Scores 📊</h2>
         {completedQuizData.length === 0 ? (
-          <div className="empty-state-card rounded-xl p-8 text-center">
+          <div className="empty-state-card p-8 text-center">
             <BookOpen className="w-10 h-10 text-violet-300 mx-auto mb-3" />
             <p className="text-gray-500 text-sm font-bold mb-1">No quizzes completed yet!</p>
             <p className="text-gray-400 text-xs mb-4">Start a quiz to see your scores here.</p>
             <button
               onClick={() => navigate("quizzes")}
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-sm font-bold shadow-md hover:opacity-90 transition-all active:scale-95"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full btn-primary text-white text-sm font-bold shadow-md hover:opacity-90 transition-all active:scale-95"
             >
               <BookOpen className="w-4 h-4" />
               Browse Quizzes
@@ -303,7 +305,7 @@ export default function ProfileView() {
               if (!quiz) return null;
               const score = quiz.score;
               return (
-                <div key={quiz.quiz_id} className="kid-card bg-white rounded-xl p-3.5 border border-gray-100 flex items-center gap-3">
+                <div key={quiz.quiz_id} className="kid-card card-premium p-3.5 flex items-center gap-3">
                   <span className="text-2xl flex-shrink-0">{quiz.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-800 text-sm truncate">{quiz.title}</h4>
@@ -319,11 +321,11 @@ export default function ProfileView() {
         )}
       </section>
 
-      {/* Settings */}
+      {/* Settings — Glassmorphism */}
       <section className="animate-slide-up delay-400" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">Settings ⚙️</h2>
-        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-          <button onClick={toggleSound} className="w-full flex items-center justify-between p-4 transition-all active:bg-gray-50">
+        <h2 className="text-lg font-bold font-display section-title mb-3">Settings ⚙️</h2>
+        <div className="card-premium divide-y divide-gray-100">
+          <button onClick={toggleSound} className="w-full flex items-center justify-between p-4 transition-all active:bg-gray-50 rounded-t-2xl">
             <div className="flex items-center gap-3">
               {soundEnabled ? <Volume2 className="w-5 h-5 text-violet-500" /> : <VolumeX className="w-5 h-5 text-gray-400" />}
               <span className="font-medium text-gray-700">Sound Effects</span>
@@ -332,7 +334,7 @@ export default function ProfileView() {
               <div className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-0.5 transition-all ${soundEnabled ? "left-5.5" : "left-0.5"}`} />
             </div>
           </button>
-          <button onClick={() => setShowResetConfirm(true)} className="w-full flex items-center justify-between p-4 transition-all active:bg-gray-50">
+          <button onClick={() => setShowResetConfirm(true)} className="w-full flex items-center justify-between p-4 transition-all active:bg-gray-50 rounded-b-2xl">
             <div className="flex items-center gap-3">
               <span className="text-lg">🗑️</span>
               <span className="font-medium text-gray-700">Reset Progress</span>

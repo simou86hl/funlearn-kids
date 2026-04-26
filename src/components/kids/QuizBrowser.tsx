@@ -28,6 +28,17 @@ const categoryColors: Record<string, string> = {
   Logic: "#EC4899",
 };
 
+const categoryEmojis: Record<string, string> = {
+  All: "🎯",
+  Math: "🧮",
+  Science: "🔬",
+  English: "📚",
+  Geography: "🌍",
+  Logic: "🧩",
+};
+
+const categoryCounts: Record<string, number> = {};
+
 const difficultyBadge: Record<string, { label: string; cls: string }> = {
   easy:   { label: "Easy",   cls: "bg-emerald-100 text-emerald-700" },
   medium: { label: "Medium", cls: "bg-amber-100 text-amber-700" },
@@ -44,10 +55,11 @@ const QuizCard = React.memo(function QuizCard({ quiz, isCompleted, score, onClic
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm text-left card-hover active:scale-[0.97] relative group"
+      className="card-premium overflow-hidden shadow-sm text-left card-hover active:scale-[0.97] relative group"
     >
-      <div className="h-2 w-full" style={{ backgroundColor: quiz.color }} />
-      <div className="p-4">
+      {/* Colored left border accent */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl" style={{ backgroundColor: quiz.color }} />
+      <div className="p-4 pl-5">
         <div className="flex items-center justify-between mb-2">
           {isCompleted && (
             <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
@@ -97,6 +109,12 @@ export default function QuizBrowser() {
   const [sortBy, setSortBy] = useState("popular");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Calculate category counts for display
+  for (const quiz of quizzes) {
+    categoryCounts[quiz.category] = (categoryCounts[quiz.category] || 0) + 1;
+  }
+  categoryCounts["All"] = quizzes.length;
+
   const hasActiveFilters = categoryFilter !== "All" || ageFilter !== "All Ages" || difficultyFilter !== "All" || searchQuery !== "";
 
   const clearFilters = () => {
@@ -134,13 +152,13 @@ export default function QuizBrowser() {
     <div className="space-y-5 pb-8">
       {/* Header */}
       <div className="animate-slide-up" style={{ opacity: 0 }}>
-        <h1 className="text-2xl font-extrabold font-display">All Quizzes</h1>
+        <h1 className="text-2xl font-extrabold font-display section-title">All Quizzes</h1>
         <p className="text-muted-foreground mt-1">
           {quizzes.length} Quizzes &middot; {statsCategories.size} Categories &middot; {quizzes.reduce((s, q) => s + q.questions.length, 0)} Questions
         </p>
       </div>
 
-      {/* Search */}
+      {/* Search — Glassmorphism */}
       <div className="relative animate-slide-up delay-100" style={{ opacity: 0 }}>
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
@@ -148,7 +166,7 @@ export default function QuizBrowser() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search quizzes..."
-          className="w-full pl-11 pr-10 py-3 rounded-2xl bg-white border border-gray-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+          className="w-full pl-11 pr-10 py-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all shadow-sm"
         />
         {searchQuery && (
           <button
@@ -161,7 +179,7 @@ export default function QuizBrowser() {
         )}
       </div>
 
-      {/* Category Filter Pills */}
+      {/* Category Filter Pills — more colorful, with emoji and count */}
       <div className="animate-slide-up delay-200" style={{ opacity: 0 }}>
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {categoryFilters.map((cat) => {
@@ -170,13 +188,19 @@ export default function QuizBrowser() {
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 ${
+                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
                   isActive
                     ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md"
                     : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
                 }`}
               >
+                <span>{categoryEmojis[cat]}</span>
                 {cat}
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                  isActive ? "bg-white/20" : "bg-gray-100 text-gray-400"
+                }`}>
+                  {categoryCounts[cat] || 0}
+                </span>
               </button>
             );
           })}
@@ -260,13 +284,13 @@ export default function QuizBrowser() {
       {/* Quiz Grid */}
       {filteredQuizzes.length === 0 ? (
         <div className="text-center py-16 animate-scale-in">
-          <div className="empty-state-card rounded-3xl p-8 max-w-sm mx-auto">
+          <div className="empty-state-card p-8 max-w-sm mx-auto">
             <span className="text-6xl block mb-4">🔍</span>
             <p className="text-xl font-bold text-gray-700 font-display mb-2">No quizzes match your filters</p>
             <p className="text-muted-foreground text-sm mb-4">Try adjusting your search or filters</p>
             <button
               onClick={clearFilters}
-              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-sm font-bold shadow-md hover:opacity-90 transition-all active:scale-95"
+              className="px-6 py-2.5 rounded-full btn-primary text-white text-sm font-bold shadow-md hover:opacity-90 transition-all active:scale-95"
             >
               Clear All Filters
             </button>

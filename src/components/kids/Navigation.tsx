@@ -81,7 +81,7 @@ export function BottomNav() {
               aria-label={label}
               onClick={() => navigate(view)}
               className={`
-                group relative flex min-h-[60px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5
+                group relative flex min-h-[64px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5
                 rounded-2xl px-1 py-2 transition-all duration-300 ease-out
                 ${isActive
                   ? "text-primary"
@@ -100,7 +100,7 @@ export function BottomNav() {
                 }`}
               >
                 <Icon
-                  className="h-5 w-5 sm:hidden"
+                  className="h-6 w-6 sm:hidden"
                   strokeWidth={isActive ? 2.5 : 1.8}
                 />
                 <span className="hidden sm:inline text-xl leading-none">
@@ -109,7 +109,7 @@ export function BottomNav() {
               </span>
 
               <span
-                className={`text-[10px] font-bold leading-tight tracking-wide transition-colors duration-300 ${
+                className={`text-[11px] font-bold leading-tight tracking-wide transition-colors duration-300 ${
                   isActive ? "text-primary" : "text-gray-400"
                 }`}
               >
@@ -142,10 +142,10 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-50 glass gradient-border-bottom">
       <div className="flex items-center justify-between px-4 py-3">
-        {/* Logo */}
+        {/* Logo with gradient pill */}
         <button
           onClick={() => navigate("home")}
-          className="flex items-center gap-1.5 transition-all duration-300 active:scale-95 hover:opacity-80"
+          className="flex items-center gap-1.5 transition-all duration-300 active:scale-95 hover:opacity-80 logo-pill"
           aria-label="Go to home"
         >
           <span className="text-2xl leading-none animate-bounce-slow" role="img" aria-hidden="true">
@@ -199,7 +199,7 @@ export function DesktopSidebar() {
       <div className="px-6 mb-8">
         <button
           onClick={() => navigate("home")}
-          className="flex items-center gap-2 transition-all duration-300 hover:opacity-80 active:scale-95"
+          className="flex items-center gap-2 transition-all duration-300 hover:opacity-80 active:scale-95 logo-pill"
           aria-label="Go to home"
         >
           <span className="text-3xl leading-none animate-bounce-slow" role="img" aria-hidden="true">🌟</span>
@@ -226,6 +226,9 @@ export function DesktopSidebar() {
             >
               <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
               <span>{label}</span>
+              {isActive && (
+                <span className="ml-auto w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 animate-glow" />
+              )}
             </button>
           );
         })}
@@ -247,7 +250,7 @@ export function DesktopSidebar() {
         {/* Mini XP bar */}
         <div className="mt-2 w-full bg-gray-200/80 rounded-full h-1.5 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-500 rounded-full transition-all duration-500"
+            className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-500 rounded-full transition-all duration-500 shimmer-overlay"
             style={{ width: `${xpInLevel}%` }}
           />
         </div>

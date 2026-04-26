@@ -53,9 +53,17 @@ function TaskCard({ task, isDone, onComplete, accent }: {
   };
 
   return (
-    <div className={`kid-card bg-white rounded-xl p-4 border-l-4 transition-all ${accent} ${
+    <div className={`kid-card rounded-xl p-4 accent-bar-left transition-all ${accent} ${
       isDone ? "opacity-80" : ""
-    }`}>
+    }`}
+    style={
+      accent === "accent-bar-left"
+        ? { '--accent-color': '#8b5cf6', '--accent-bg': 'rgba(139, 92, 246, 0.04)' } as React.CSSProperties
+        : accent === "border-l-blue-500"
+        ? { '--accent-color': '#3b82f6', '--accent-bg': 'rgba(59, 130, 246, 0.04)' } as React.CSSProperties
+        : { '--accent-color': '#8b5cf6', '--accent-bg': 'rgba(139, 92, 246, 0.04)' } as React.CSSProperties
+    }
+    >
       <div className="flex items-start gap-3">
         <span className="text-2xl mt-0.5">{task.emoji}</span>
         <div className="flex-1 min-w-0">
@@ -74,7 +82,7 @@ function TaskCard({ task, isDone, onComplete, accent }: {
           className={`mt-3 w-full py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
             claimed
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:opacity-90 shadow-md shadow-violet-500/20 animate-glow"
+              : "btn-primary text-white hover:opacity-90 shadow-md shadow-violet-500/20 animate-glow"
           }`}>
           {claimed ? "✅ Claimed!" : "✨ Claim Reward"}
         </button>
@@ -108,17 +116,27 @@ export default function TasksView() {
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div className="text-center animate-slide-up" style={{ opacity: 0 }}>
-        <h1 className="text-2xl font-extrabold font-display">Missions 📋</h1>
+        <h1 className="text-2xl font-extrabold font-display section-title">Missions 📋</h1>
         <p className="text-muted-foreground mt-1">Complete tasks to earn XP and unlock achievements!</p>
       </div>
 
-      {/* Streak Card — Positive Framing */}
+      {/* Streak Card — with fire particles */}
       <div
-        className={`rounded-3xl p-6 text-white shadow-xl text-center animate-slide-up delay-100 relative overflow-hidden ${
-          progress.streak > 0 ? "streak-gradient-positive" : "streak-gradient-positive"
-        }`}
+        className={`rounded-3xl p-6 text-white shadow-xl text-center animate-slide-up delay-100 relative overflow-hidden streak-gradient-positive`}
         style={{ opacity: 0 }}
       >
+        {/* CSS Fire particles */}
+        {progress.streak > 0 && (
+          <>
+            <div className="fire-particle" style={{ left: '15%', '--fire-duration': '1.8s', '--fire-delay': '0s', '--fire-drift': '-8px' } as React.CSSProperties} />
+            <div className="fire-particle" style={{ left: '30%', '--fire-duration': '2.2s', '--fire-delay': '0.3s', '--fire-drift': '12px' } as React.CSSProperties} />
+            <div className="fire-particle" style={{ left: '50%', '--fire-duration': '1.5s', '--fire-delay': '0.6s', '--fire-drift': '-5px' } as React.CSSProperties} />
+            <div className="fire-particle" style={{ left: '65%', '--fire-duration': '2s', '--fire-delay': '0.1s', '--fire-drift': '10px' } as React.CSSProperties} />
+            <div className="fire-particle" style={{ left: '80%', '--fire-duration': '1.7s', '--fire-delay': '0.8s', '--fire-drift': '-12px' } as React.CSSProperties} />
+            <div className="fire-particle" style={{ left: '42%', '--fire-duration': '2.4s', '--fire-delay': '0.4s', '--fire-drift': '6px' } as React.CSSProperties} />
+          </>
+        )}
+
         <span className="absolute top-3 right-4 text-3xl animate-bounce-slow opacity-40">
           {progress.streak > 0 ? "🔥" : "☀️"}
         </span>
@@ -152,7 +170,7 @@ export default function TasksView() {
       {/* Daily Missions */}
       <section className="animate-slide-up delay-200" style={{ opacity: 0 }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold font-display">Today&apos;s Missions 📝</h2>
+          <h2 className="text-lg font-bold font-display section-title">Today&apos;s Missions 📝</h2>
           <span className="text-sm font-semibold text-violet-600 bg-violet-100 px-3 py-1 rounded-full">{dailyCompleted}/{dailyTasks.length}</span>
         </div>
         {noTasksCompleted && (
@@ -167,7 +185,7 @@ export default function TasksView() {
               task={task}
               isDone={!!progress.tasksCompleted[task.task_id]}
               onComplete={() => completeTask(task.task_id, task.reward_xp)}
-              accent="border-l-violet-500"
+              accent="accent-bar-left"
             />
           ))}
         </div>
@@ -179,7 +197,7 @@ export default function TasksView() {
       {/* Weekly Missions */}
       <section className="animate-slide-up delay-300" style={{ opacity: 0 }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold font-display">Weekly Missions 🗓️</h2>
+          <h2 className="text-lg font-bold font-display section-title">Weekly Missions 🗓️</h2>
           <span className="text-sm font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">{weeklyCompleted}/{weeklyTasks.length}</span>
         </div>
         <div className="space-y-3">
@@ -200,7 +218,7 @@ export default function TasksView() {
 
       {/* Achievements */}
       <section className="animate-slide-up delay-400" style={{ opacity: 0 }}>
-        <h2 className="text-lg font-bold font-display mb-3">Achievements 🏆</h2>
+        <h2 className="text-lg font-bold font-display section-title mb-3">Achievements 🏆</h2>
 
         {unlockedAchievements.length > 0 && (
           <div className="mb-4">
@@ -221,8 +239,8 @@ export default function TasksView() {
           <div className="mb-4">
             <p className="text-xs font-semibold text-violet-500 uppercase tracking-wider mb-2">🎯 Next to Unlock</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {nextToUnlock.map((ach, i) => (
-                <div key={ach.achievement_id} className="bg-gradient-to-br from-violet-50/50 to-fuchsia-50/50 border-2 border-violet-200/50 rounded-xl p-3 text-center">
+              {nextToUnlock.map((ach) => (
+                <div key={ach.achievement_id} className="card-premium p-3 text-center">
                   <span className="text-2xl block opacity-60">{ach.emoji}</span>
                   <span className="text-[10px] font-bold text-violet-400 block mt-1">{ach.description}</span>
                   <span className="text-[9px] text-violet-300 block mt-0.5">+{ach.xp_reward} XP</span>
@@ -237,7 +255,7 @@ export default function TasksView() {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">🔒 Keep going to unlock!</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {lockedAchievements.map((ach) => (
-                <div key={ach.achievement_id} className="relative bg-gray-50 border-2 border-gray-200 rounded-xl p-3 text-center overflow-hidden">
+                <div key={ach.achievement_id} className="relative bg-gray-50 border border-gray-200 rounded-xl p-3 text-center overflow-hidden shimmer-locked">
                   <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none"><span className="text-3xl">🔒</span></div>
                   <span className="text-2xl block grayscale opacity-40">{ach.emoji}</span>
                   <span className="text-[10px] font-bold text-gray-400 block mt-1">???</span>
@@ -248,13 +266,16 @@ export default function TasksView() {
         )}
 
         {unlockedAchievements.length === 0 && (
-          <div className="empty-state-card rounded-xl p-6 text-center mt-3">
+          <div className="empty-state-card p-6 text-center mt-3">
             <span className="text-3xl block mb-2">🏆</span>
             <p className="text-sm font-semibold text-gray-500">Achievements to Unlock!</p>
             <p className="text-xs text-muted-foreground mt-1">Complete activities to earn your first achievement</p>
           </div>
         )}
       </section>
+
+      {/* Celebration confetti placeholder */}
+      <div id="celebration-confetti" />
     </div>
   );
 }
